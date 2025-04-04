@@ -21,13 +21,13 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
   return (
     <div className="flex h-screen w-full">
       {/* Left side - Image and brand */}
-      <div className="w-1/2 bg-gray-100 relative flex flex-col justify-center items-center">
+      <div className="hidden md:flex w-1/2 bg-gray-100 relative flex flex-col justify-center items-center">
         <Image src={wetConcrete} alt="Wet Concrete" fill className="object-cover opacity-90" />
       </div>
 
       {/* Right side - Sign up form */}
-      <div className="w-1/2 flex items-center justify-center">
-        <div className="w-full max-w-md px-8">
+      <div className="w-full md:w-1/2  flex items-center justify-center">
+        <div className="w-full md:w-3/4 xl:w-1/2 max-w-md px-8">
           <div className="flex flex-col items-center mb-8">
             <div className="text-orange-500 mb-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12">

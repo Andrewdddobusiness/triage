@@ -6,14 +6,16 @@ import { signInAction } from "@/app/actions";
 export default function Login() {
   return (
     <div className="flex h-screen w-full">
-      {/* Left side - Image */}
-      <div className="w-1/2 bg-gray-100 relative flex flex-col justify-center items-center">
+      {/* Left side - Image (hidden on small screens) */}
+      <div className="hidden md:flex w-1/2 bg-gray-100 relative flex-col justify-center items-center">
         <Image src={sawing} alt="Sawing" fill className="object-cover opacity-90" />
       </div>
 
       {/* Right side - Login form */}
-      <div className="w-1/2 flex items-center justify-center">
-        <div className="w-full max-w-md px-8">
+      <div className="w-full md:w-1/2 flex items-center justify-center">
+        {/* On mobile, the form container takes 50% of the width and is centered;
+            on larger screens, it uses the full width of its half */}
+        <div className="w-full md:w-3/4 xl:w-1/2 mx-auto px-8">
           <div className="flex flex-col items-center mb-8">
             <div className="text-orange-500 mb-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12">

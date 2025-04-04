@@ -28,12 +28,13 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="lg:w-1/2">
-              <div className="relative h-64 sm:h-80 lg:h-96 w-full">
+            <div className="w-full lg:w-1/2 justify-center items-center flex pt-12">
+              <div className="relative h-64 sm:h-80 lg:h-96 w-full justify-center items-center flex ">
                 <Image
                   src={dashboard}
                   alt="BuildTriage Dashboard"
-                  fill
+                  width={600}
+                  height={400}
                   className="object-cover rounded-lg shadow-xl p-2 bg-white"
                 />
               </div>
