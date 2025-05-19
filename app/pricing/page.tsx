@@ -10,7 +10,7 @@ export default function PricingPage() {
         <div className="container mx-auto px-4 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-full mb-4 border border-orange-500">
               <span className="h-2 w-2 rounded-full bg-orange-500"></span>
               <span className="text-sm font-medium">Pricing</span>
             </div>
@@ -52,7 +52,9 @@ export default function PricingPage() {
                   <span className="text-gray-500 ml-1">/ month</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-6">Pause and cancel anytime.</p>
-                <Button className="w-full bg-gray-800 hover:bg-gray-700">Select Plan</Button>
+                <Button disabled className="w-full bg-gray-800 hover:bg-gray-700">
+                  Coming Soon
+                </Button>
               </div>
               <div className="border-t border-gray-100 p-6">
                 <h3 className="font-medium mb-4">Free plan includes:</h3>
@@ -135,7 +137,9 @@ export default function PricingPage() {
                   <span className="text-gray-500 ml-1">/ month</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-6">Pause and cancel anytime.</p>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600">Select Plan</Button>
+                <Button disabled className="w-full bg-orange-500 hover:bg-orange-600">
+                  Coming Soon
+                </Button>
               </div>
               <div className="border-t border-gray-100 p-6">
                 <h3 className="font-medium mb-4">Pro plan includes:</h3>
@@ -235,7 +239,9 @@ export default function PricingPage() {
                   <span className="text-gray-500 ml-1">/ month</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-6">Pause and cancel anytime.</p>
-                <Button className="w-full bg-gray-800 hover:bg-gray-700">Contact Us</Button>
+                <Button disabled className="w-full bg-gray-800 hover:bg-gray-700">
+                  Coming Soon
+                </Button>
               </div>
               <div className="border-t border-gray-100 p-6">
                 <h3 className="font-medium mb-4">Elite plan includes:</h3>
