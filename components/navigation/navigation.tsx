@@ -37,7 +37,7 @@ export default function Navbar() {
   return (
     <div
       className={`w-full sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled ? "backdrop-blur-md bg-white/70 shadow-sm border-b border-gray-200/20" : "bg-transparent"
+        isScrolled ? "backdrop-blur-lg bg-white/30 shadow" : "bg-transparent"
       }`}
     >
       <nav className="border-gray-200">
@@ -72,7 +72,7 @@ export default function Navbar() {
             </svg>
           </button>
           <div id="navbar-default" className={`${isMenuOpen ? "block" : "hidden"} w-full md:block md:w-auto`}>
-            <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+            <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-white md:bg-transparent">
               <div className="flex items-center space-x-4 flex-1 justify-end bg-transparent">
                 <Link href="/sign-in" passHref legacyBehavior>
                   <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 bg-white">
