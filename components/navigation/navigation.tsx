@@ -1,28 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../ui/button";
 
+const SpaakLogo = "/logos/logo-color.png";
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
+  // Add scroll event listener to detect when user scrolls
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("scroll", handleScroll);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
-    <div className="w-full bg-gray-800 shadow sticky top-0 z-50">
-      <nav className="bg-gray-800 border-gray-200 dark:bg-gray-900">
+    <div
+      className={`w-full sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled ? "backdrop-blur-lg bg-white/30 shadow" : "bg-transparent"
+      }`}
+    >
+      <nav className="border-gray-200">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <Link href="https://flowbite.com/" className="flex items-center space-x-3 rtl:space-x-reverse">
-            <div className="text-orange-500">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-white">Triage</h2>
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <Image src={SpaakLogo} alt="Spaak Logo" width={32} height={32} className="text-orange-500" />
+            <h2 className="text-xl font-bold text-gray-800">Spaak</h2>
           </Link>
           <button
             onClick={toggleMenu}
