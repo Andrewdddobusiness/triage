@@ -73,9 +73,9 @@ export default function Navbar() {
           </button>
           <div id="navbar-default" className={`${isMenuOpen ? "block" : "hidden"} w-full md:block md:w-auto`}>
             <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
-              <div className="flex items-center space-x-4 flex-1 justify-end">
+              <div className="flex items-center space-x-4 flex-1 justify-end bg-white">
                 <Link href="/sign-in" passHref legacyBehavior>
-                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50">
+                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 bg-white">
                     Sign In
                   </Button>
                 </Link>
