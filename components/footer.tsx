@@ -14,12 +14,14 @@ export default function Footer() {
             <Link href="/about" className="text-zinc-300 hover:text-white transition-colors">
               About
             </Link>
-
             <Link href="/pricing" className="text-zinc-300 hover:text-white transition-colors">
               Pricing
             </Link>
             <Link href="/privacy" className="text-zinc-300 hover:text-white transition-colors">
               Privacy
+            </Link>
+            <Link href="/terms" className="text-zinc-300 hover:text-white transition-colors">
+              Terms
             </Link>
             <Link href="/support" className="text-zinc-300 hover:text-white transition-colors">
               Support & Contact
