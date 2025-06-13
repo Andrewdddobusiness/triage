@@ -2,7 +2,7 @@
   "importMap": "./import_map.json",
   "tasks": {
     "poll": "deno run --allow-env --allow-net functions/vapi_call_poller/index.ts",
-    "webhook": "deno run --allow-env --allow-net functions/vapi_call_webhook/index.ts"
+    "webhook": "deno run --allow-env --allow-net       functions/vapi_call_webhook/index.ts"
   },
   "functions": {
     "vapi_call_webhook": {
