@@ -1,7 +1,8 @@
-import React from "react";
+"use client";
 import Image from "next/image";
 import sawing from "../../../public/images/sawing.jpg";
-import { signInAction } from "@/app/actions";
+import logoColor from "../../../public/images/logo/color/logo-color-1.png";
+import { signInAction } from "@/app/actions/auth";
 
 export default function Login() {
   return (
@@ -17,17 +18,15 @@ export default function Login() {
             on larger screens, it uses the full width of its half */}
         <div className="w-full md:w-3/4 xl:w-1/2 mx-auto px-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="text-orange-500 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12">
-                <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
-              </svg>
+            <div className="mb-4">
+              <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
             </div>
-            <h2 className="text-3xl font-bold">BuildTriage</h2>
+            <h2 className="text-3xl font-bold text-zinc-700">Spaak</h2>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
 
           {/* Attach the signInAction to the form */}
-          <form action={signInAction} method="POST" className="space-y-4">
+          <form action={signInAction} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -37,7 +36,7 @@ export default function Login() {
                 name="email"
                 type="email"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 autofill:bg-white autofill:text-gray-900 autofill:shadow-[inset_0_0_0px_1000px_white]"
               />
             </div>
 
@@ -55,7 +54,7 @@ export default function Login() {
                 name="password"
                 type="password"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
               />
             </div>
 

@@ -257,3 +257,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.vapi_call_poller]
   schedule = "*/10 * * * *" # every 10 minutes
+
+[functions.stripe-payment-redirect]
+verify_jwt = false

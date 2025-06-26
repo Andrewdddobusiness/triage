@@ -1,6 +1,7 @@
 {
   "importMap": "./import_map.json",
   "tasks": {
+    "start": "supabase functions serve",
     "poll": "deno run --allow-env --allow-net functions/vapi_call_poller/index.ts",
     "webhook": "deno run --allow-env --allow-net       functions/vapi_call_webhook/index.ts"
   },
@@ -11,5 +12,9 @@
     "vapi_call_poller": {
       "include": ["functions/vapi_call_poller/**"]
     }
+  },
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"],
+    "strict": true
   }
 }

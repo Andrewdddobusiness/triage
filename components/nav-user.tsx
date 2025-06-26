@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
-import { signOutAction } from "@/app/actions";
+import { signOutAction } from "@/app/actions/auth";
 
 export function NavUser({
   user,
