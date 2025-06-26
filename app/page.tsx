@@ -61,21 +61,21 @@ export default function HomePage() {
       {/* How It Works Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-12 text-center">How Spaak Works?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-zinc-700">How Spaak Works?</h2>
           <div className="grid gap-8 md:grid-cols-3">
             <div className="bg-gray-50 p-6 rounded-lg text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
                 <PhoneIcon className="h-8 w-8 text-[#ffb351]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Missed Call</h3>
-              <p className="text-gray-600">When you can't answer, Spaak automatically steps in to handle the call.</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Missed Call</h3>
+              <p className="text-zinc-700">When you can't answer, Spaak automatically steps in to handle the call.</p>
             </div>
             <div className="bg-gray-50 p-6 rounded-lg text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffdacb] flex items-center justify-center">
                 <ClipboardCheckIcon className="h-8 w-8 text-[#fe885a]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Capture Details</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Capture Details</h3>
+              <p className="text-zinc-700">
                 Spaak collects caller details, project needs, and preferred contact times.
               </p>
             </div>
@@ -83,8 +83,8 @@ export default function HomePage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffddde] flex items-center justify-center">
                 <ClockIcon className="h-8 w-8 text-[#ffa2a3]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Ready Summary</h3>
-              <p className="text-gray-600">A complete summary is sent to your dashboard, ready for follow-up.</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Ready Summary</h3>
+              <p className="text-zinc-700">A complete summary is sent to your dashboard, ready for follow-up.</p>
             </div>
           </div>
         </div>

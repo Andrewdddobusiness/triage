@@ -1,26 +1,238 @@
-import { signUpAction, signInWithGoogleAction } from "@/app/actions/auth";
+"use client";
+
+import { signUpAction } from "@/app/actions/auth";
+import { signInWithGoogleAction } from "@/app/actions/auth";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import wetConcrete from "../../../public/images/wet-concrete.jpg";
 import logoColor from "../../../public/images/logo/color/logo-color-1.png";
 import Image from "next/image";
+import { useState } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import React from "react";
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+  validatePasswordConfirmation,
+  getPasswordStrength,
+} from "@/utils/validation";
 
-export default async function Signup(props: { searchParams: Promise<Message> }) {
-  const searchParams = await props.searchParams;
-  if ("message" in searchParams) {
+export default function Signup(props: { searchParams: Promise<Message> }) {
+  const [searchParams, setSearchParams] = useState<Message | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Validation states
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  // Handle name change with validation
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+
+    if (touched.name) {
+      const validation = validateName(newName);
+      setNameError(validation.isValid ? "" : validation.error || "");
+    }
+  };
+
+  // Handle email change with validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    if (touched.email) {
+      const validation = validateEmail(newEmail);
+      setEmailError(validation.isValid ? "" : validation.error || "");
+    }
+  };
+
+  // Handle password change with validation
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+
+    if (touched.password) {
+      const validation = validatePassword(newPassword);
+      setPasswordError(validation.isValid ? "" : validation.error || "");
+    }
+
+    // Re-validate confirm password if it's been touched
+    if (touched.confirmPassword && confirmPassword) {
+      const confirmValidation = validatePasswordConfirmation(newPassword, confirmPassword);
+      setConfirmPasswordError(confirmValidation.isValid ? "" : confirmValidation.error || "");
+    }
+  };
+
+  // Handle confirm password change with validation
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newConfirmPassword = e.target.value;
+    setConfirmPassword(newConfirmPassword);
+
+    if (touched.confirmPassword) {
+      const validation = validatePasswordConfirmation(password, newConfirmPassword);
+      setConfirmPasswordError(validation.isValid ? "" : validation.error || "");
+    }
+  };
+
+  // Handle field blur (when user leaves the field)
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+    // Validate the field when it loses focus
+    switch (field) {
+      case "name":
+        const nameValidation = validateName(name);
+        setNameError(nameValidation.isValid ? "" : nameValidation.error || "");
+        break;
+      case "email":
+        const emailValidation = validateEmail(email);
+        setEmailError(emailValidation.isValid ? "" : emailValidation.error || "");
+        break;
+      case "password":
+        const passwordValidation = validatePassword(password);
+        setPasswordError(passwordValidation.isValid ? "" : passwordValidation.error || "");
+        break;
+      case "confirmPassword":
+        const confirmValidation = validatePasswordConfirmation(password, confirmPassword);
+        setConfirmPasswordError(confirmValidation.isValid ? "" : confirmValidation.error || "");
+        break;
+    }
+  };
+
+  // Handle form submission with loading state
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      await signUpAction(formData);
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Sign up error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if form is valid
+  const isFormValid = () => {
+    const nameValid = validateName(name).isValid;
+    const emailValid = validateEmail(email).isValid;
+    const passwordValid = validatePassword(password).isValid;
+    const confirmPasswordValid = validatePasswordConfirmation(password, confirmPassword).isValid;
+
+    return nameValid && emailValid && passwordValid && confirmPasswordValid && termsAccepted;
+  };
+
+  // Get password strength for display
+  const passwordStrength = getPasswordStrength(password);
+
+  // Initialize searchParams
+  React.useEffect(() => {
+    props.searchParams.then(setSearchParams);
+  }, [props.searchParams]);
+  
+  // Check for success parameter in URL
+  React.useEffect(() => {
+    props.searchParams.then((params) => {
+      if (params && "success" in params) {
+        setIsSuccess(true);
+      }
+    });
+  }, [props.searchParams]);
+  
+  if (searchParams && "message" in searchParams) {
     return (
       <div className="w-full flex-1 flex items-center h-screen sm:max-w-md justify-center gap-2 p-4">
         <FormMessage message={searchParams} />
       </div>
     );
   }
+  
+  // Success screen
+  if (isSuccess) {
+    return (
+      <div className="flex h-screen w-full">
+        <div className="flex w-full mx-auto bg-white overflow-hidden">
+          {/* Left side - Success message */}
+          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12">
+            <div className="w-full max-w-md text-center">
+              {/* Logo */}
+              <div className="flex justify-center mb-6">
+                <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
+              </div>
+              
+              {/* Success message */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-zinc-700 mb-4">Check Your Email</h1>
+                <p className="text-gray-600 mb-2">
+                  We've sent a verification link to:
+                </p>
+                <p className="text-orange-600 font-medium mb-4">{email}</p>
+                <p className="text-gray-600 text-sm">
+                  Please check your email and click the verification link to activate your account.
+                </p>
+              </div>
+
+              {/* Go to Sign In button */}
+              <Link href="/sign-in">
+                <Button className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors h-12">
+                  Go to Sign In
+                </Button>
+              </Link>
+
+              {/* Additional help text */}
+              <p className="text-sm text-gray-500 mt-4">
+                Didn't receive the email? Check your spam folder or{" "}
+                <button 
+                  onClick={() => setIsSuccess(false)}
+                  className="text-orange-600 hover:text-orange-500 underline"
+                >
+                  try again
+                </button>
+              </p>
+            </div>
+          </div>
+
+          {/* Right side - Image (same as sign-up form) */}
+          <div className="hidden md:flex w-1/2 p-8">
+            <div className="relative w-full h-full rounded-2xl overflow-hidden">
+              <Image src={wetConcrete} alt="Wet Concrete" fill className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full">
-      <div className="flex w-full  mx-auto bg-white overflow-hidden">
+      <div className="flex w-full mx-auto bg-white overflow-hidden">
         {/* Left side - Sign up form */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12">
           <div className="w-full max-w-md">
@@ -35,9 +247,10 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
 
             {/* Google Sign In Button */}
             <form action={signInWithGoogleAction}>
-              <button
+              <Button
                 type="submit"
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors mb-6"
+                variant="outline"
+                className="w-full flex items-center bg-white justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors mb-6 h-12"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -58,7 +271,7 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
                   />
                 </svg>
                 <span className="text-gray-700 font-medium">Log in with Google</span>
-              </button>
+              </Button>
             </form>
 
             {/* Divider */}
@@ -68,10 +281,10 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
               <div className="flex-1 border-t border-gray-300"></div>
             </div>
 
-            <form className="space-y-4" action={signUpAction}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
               {/* Name Field */}
               <div>
-                <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="name" className="block text-sm font-medium text-zinc-700 mb-2">
                   Name
                 </Label>
                 <Input
@@ -79,14 +292,19 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
                   name="name"
                   type="text"
                   placeholder="Rodrigo Robinson"
+                  value={name}
+                  onChange={handleNameChange}
+                  onBlur={() => handleBlur("name")}
+                  disabled={isLoading}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
+                  className={`w-full px-4 py-3 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black placeholder:text-gray-500 [&:not(:placeholder-shown)]:bg-white [&:not(:placeholder-shown)]:text-black ${nameError ? "border-red-500" : "border-gray-300"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 />
+                {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
               </div>
 
               {/* Email Field */}
               <div>
-                <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-2">
                   Email address
                 </Label>
                 <Input
@@ -94,36 +312,125 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
                   name="email"
                   type="email"
                   placeholder="rodrigo@companyemail.com"
+                  value={email}
+                  onChange={handleEmailChange}
+                  onBlur={() => handleBlur("email")}
+                  disabled={isLoading}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
+                  className={`w-full px-4 py-3 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black placeholder:text-gray-500 [&:not(:placeholder-shown)]:bg-white [&:not(:placeholder-shown)]:text-black ${emailError ? "border-red-500" : "border-gray-300"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 />
+                {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
               </div>
 
               {/* Password Field */}
               <div>
-                <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <Label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-2">
                   Password
                 </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="min 8 chars"
-                  minLength={8}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="min 8 chars"
+                    minLength={8}
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onBlur={() => handleBlur("password")}
+                    disabled={isLoading}
+                    required
+                    className={`w-full px-4 py-3 pr-12 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black placeholder:text-gray-500 ${passwordError ? "border-red-500" : "border-gray-300"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 h-8 w-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </Button>
+                </div>
+                {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+                {password && !passwordError && (
+                  <div className="mt-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            passwordStrength.level === "weak"
+                              ? "w-1/4 bg-red-500"
+                              : passwordStrength.level === "medium"
+                                ? "w-2/4 bg-yellow-500"
+                                : passwordStrength.level === "strong"
+                                  ? "w-3/4 bg-blue-500"
+                                  : "w-full bg-green-500"
+                          }`}
+                        />
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          passwordStrength.level === "weak"
+                            ? "text-red-500"
+                            : passwordStrength.level === "medium"
+                              ? "text-yellow-600"
+                              : passwordStrength.level === "strong"
+                                ? "text-blue-500"
+                                : "text-green-500"
+                        }`}
+                      >
+                        {passwordStrength.description}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <Label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-700 mb-2">
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    onBlur={() => handleBlur("confirmPassword")}
+                    disabled={isLoading}
+                    required
+                    className={`w-full px-4 py-3 pr-12 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-black placeholder:text-gray-500 ${confirmPasswordError ? "border-red-500" : "border-gray-300"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 h-8 w-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </Button>
+                </div>
+                {confirmPasswordError && <p className="text-red-500 text-sm mt-1">{confirmPasswordError}</p>}
               </div>
 
               {/* Terms and Privacy */}
               <div className="flex items-start gap-3 mb-6">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="terms"
+                  checked={termsAccepted}
+                  onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                  disabled={isLoading}
                   required
-                  className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                  className={`mt-1 border-2 border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 />
-                <label htmlFor="terms" className="text-sm text-gray-600">
+                <label htmlFor="terms" className={`text-sm text-zinc-700 ${isLoading ? "opacity-50" : ""}`}>
                   I agree to the{" "}
                   <Link href="/terms" className="text-orange-600 hover:text-orange-500">
                     Terms & Privacy
@@ -132,17 +439,18 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
               </div>
 
               {/* Sign Up Button */}
-              <SubmitButton
-                formAction={signUpAction}
-                pendingText="Signing up..."
-                className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+              <Button
+                type="submit"
+                disabled={!isFormValid() || isLoading}
+                className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed h-12 flex items-center justify-center gap-2"
               >
-                Sign up
-              </SubmitButton>
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isLoading ? "Signing up..." : "Sign up"}
+              </Button>
 
               {/* Sign in navigation */}
               <div className="text-center pt-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-zinc-700">
                   Have an account?{" "}
                   <Link href="/sign-in" className="text-orange-600 hover:text-orange-500 font-medium">
                     Sign in
@@ -150,7 +458,7 @@ export default async function Signup(props: { searchParams: Promise<Message> }) 
                 </p>
               </div>
 
-              <FormMessage message={searchParams} />
+              {searchParams && <FormMessage message={searchParams} />}
             </form>
           </div>
         </div>
