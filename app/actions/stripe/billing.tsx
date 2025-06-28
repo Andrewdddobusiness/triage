@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { SquareArrowOutUpRight } from "lucide-react";
+import { SquareArrowOutUpRight, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface BillingActionsProps {
@@ -22,6 +23,47 @@ export function BillingActions({
   userId,
   subscription,
 }: BillingActionsProps) {
+  const [isCheckingStripe, setIsCheckingStripe] = useState(false);
+
+  const checkReactivationStatus = async () => {
+    try {
+      setIsCheckingStripe(true);
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.error("No active session");
+        return null;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/stripe-check-reactivation`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: userId }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Reactivation check result:", result);
+        return result;
+      } else {
+        const errorData = await response.json();
+        console.error("Error checking reactivation status:", errorData);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error checking reactivation status:", error);
+      return null;
+    } finally {
+      setIsCheckingStripe(false);
+    }
+  };
+
   const handleStartSubscription = async () => {
     try {
       const supabase = createClient();
@@ -88,7 +130,24 @@ export function BillingActions({
     }
   };
 
-  // Smart logic to determine button behavior
+  const handleSmartReactivation = async () => {
+    // For subscriptions with history, check Stripe first to determine the right action
+    const reactivationStatus = await checkReactivationStatus();
+
+    if (!reactivationStatus) {
+      // If check failed, default to checkout (safer)
+      await handleStartSubscription();
+      return;
+    }
+
+    if (reactivationStatus.action === "portal") {
+      await handleManageSubscription();
+    } else {
+      await handleStartSubscription();
+    }
+  };
+
+  // Simplified logic using real-time Stripe checks
   const getButtonConfig = () => {
     // Always show manage for active subscriptions (not cancelled)
     if (hasActiveSubscription && !subscription?.cancel_at_period_end) {
@@ -99,28 +158,19 @@ export function BillingActions({
       };
     }
 
-    // Show reactivate for recently cancelled subscriptions
-    if (subscription?.cancel_at_period_end || (subscription?.status === "canceled" && subscription?.canceled_at)) {
-      const cancelDate = subscription.canceled_at ? new Date(subscription.canceled_at) : new Date();
-      const periodEnd = new Date(subscription.current_period_end);
-      const now = new Date();
-
-      // Recently cancelled (within billing period) - show reactivate
-      if (now <= periodEnd || now.getTime() - cancelDate.getTime() < 30 * 24 * 60 * 60 * 1000) {
-        // 30 days
-        return {
-          text: "Reactivate Subscription",
-          action: handleManageSubscription,
-          description: "Resume your existing subscription",
-        };
-      }
+    // For any subscription history (cancelled, expired, etc.), use smart reactivation
+    if (hasSubscriptionHistory) {
+      return {
+        text: "Reactivate Subscription",
+        action: handleSmartReactivation,
+      };
     }
 
-    // Default to create new for everything else
+    // For completely new users
     return {
-      text: hasSubscriptionHistory ? "Start New Subscription" : "Start Subscription",
+      text: "Start Subscription",
       action: handleStartSubscription,
-      description: hasSubscriptionHistory ? "Create a fresh subscription" : "Begin your subscription today",
+      description: "Begin your subscription today",
     };
   };
 
@@ -128,11 +178,22 @@ export function BillingActions({
 
   return (
     <div className="flex flex-col gap-3">
-      <Button onClick={buttonConfig.action} className="w-full">
-        {buttonConfig.text}
-        <SquareArrowOutUpRight className="w-5 h-5 mr-2" />
+      <Button onClick={buttonConfig.action} className="w-full" disabled={isCheckingStripe}>
+        {isCheckingStripe ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Pending...
+          </>
+        ) : (
+          <>
+            {buttonConfig.text}
+            <SquareArrowOutUpRight className="w-5 h-5 mr-2" />
+          </>
+        )}
       </Button>
-      <p className="text-xs text-muted-foreground text-center">{buttonConfig.description}</p>
+      <p className="text-xs text-muted-foreground text-center">
+        {isCheckingStripe ? "Verifying subscription status with Stripe..." : buttonConfig.description}
+      </p>
     </div>
   );
 }

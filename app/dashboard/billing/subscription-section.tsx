@@ -18,8 +18,8 @@ interface SubscriptionData {
   hasSubscriptionHistory: boolean;
   subscription?: {
     status: string;
-    current_period_start: string;
-    current_period_end: string;
+    current_period_start: string | null;
+    current_period_end: string | null;
     cancel_at_period_end: boolean;
     canceled_at?: string;
     trial_end?: string;
@@ -63,7 +63,8 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -178,8 +179,10 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                       <div>
                         <h3 className="text-lg font-semibold">Pro Plan - Cancelled</h3>
                         <p className="text-sm text-muted-foreground">
-                          {currentData.subscription && (
+                          {currentData.subscription?.current_period_end ? (
                             <>Subscription will end on: {formatDate(currentData.subscription.current_period_end)}</>
+                          ) : (
+                            <>Subscription has been cancelled</>
                           )}
                         </p>
                       </div>
@@ -201,8 +204,10 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                       <div>
                         <h3 className="text-lg font-semibold">Pro Plan Active</h3>
                         <p className="text-sm text-muted-foreground">
-                          {currentData.subscription && (
+                          {currentData.subscription?.current_period_end ? (
                             <>Next billing: {formatDate(currentData.subscription.current_period_end)}</>
+                          ) : (
+                            <>Active subscription</>
                           )}
                         </p>
                       </div>
@@ -221,10 +226,10 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
           ) : currentData.hasSubscriptionHistory ? (
             <>
               <div className="text-center py-8">
-                <AlertCircleIcon className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Subscription Inactive</h3>
+                <AlertCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Subscription Expired</h3>
                 <p className="text-zinc-600 mb-6">
-                  Your subscription is not currently active. Reactivate to continue using all features.
+                  Your subscription has expired. Start a new subscription to continue using all features.
                 </p>
                 <BillingActions 
                   hasActiveSubscription={false} 

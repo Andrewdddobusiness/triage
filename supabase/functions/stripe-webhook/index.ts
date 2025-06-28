@@ -174,17 +174,29 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription, supab
       }
     }
 
+    // Apply business logic for period dates based on subscription state
+    const shouldClearPeriodDates = finalSubscription.status === "canceled";
+    const shouldKeepPeriodDates = (
+      finalSubscription.status === "active" || 
+      finalSubscription.status === "trialing" ||
+      (finalSubscription.cancel_at_period_end && finalSubscription.status !== "canceled")
+    );
+
     const subscriptionData = {
       stripe_customer_id: finalSubscription.customer,
       stripe_subscription_id: finalSubscription.id,
       stripe_price_id: finalSubscription.items.data[0]?.price?.id,
       status: finalSubscription.status,
-      current_period_start: finalSubscription.current_period_start
-        ? new Date(finalSubscription.current_period_start * 1000).toISOString()
-        : null,
-      current_period_end: finalSubscription.current_period_end
-        ? new Date(finalSubscription.current_period_end * 1000).toISOString()
-        : null,
+      current_period_start: shouldClearPeriodDates ? null : (
+        finalSubscription.current_period_start
+          ? new Date(finalSubscription.current_period_start * 1000).toISOString()
+          : null
+      ),
+      current_period_end: shouldClearPeriodDates ? null : (
+        finalSubscription.current_period_end
+          ? new Date(finalSubscription.current_period_end * 1000).toISOString()
+          : null
+      ),
       cancel_at_period_end: finalSubscription.cancel_at_period_end,
     };
 

@@ -13,7 +13,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { userId, forceSync = false } = await req.json();
+    const { userId, forceSync = false, syncAll = false } = await req.json();
 
     // Initialize Supabase client
     const supabaseClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -23,59 +23,126 @@ serve(async (req: Request) => {
       apiVersion: "2024-06-20",
     });
 
-    // Get service provider record
-    const { data: serviceProvider, error: spError } = await supabaseClient
-      .from("service_providers")
-      .select("id, subscription_status, stripe_customer_id")
-      .eq("auth_user_id", userId)
-      .single();
+    let serviceProviders: any[] = [];
 
-    if (spError) {
-      console.error("Error fetching service provider:", spError);
-      return new Response(JSON.stringify({ error: "Service provider not found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 404,
-      });
+    if (syncAll) {
+      // Get all service providers that have subscriptions (which contain the stripe_customer_id)
+      const { data: allProviders, error: spError } = await supabaseClient
+        .from("service_providers")
+        .select(`
+          id, 
+          subscription_status, 
+          auth_user_id,
+          subscriptions!inner(stripe_customer_id)
+        `)
+        .not("subscriptions.stripe_customer_id", "is", null);
+
+      if (spError) {
+        console.error("Error fetching service providers:", spError);
+        return new Response(JSON.stringify({ error: "Failed to fetch service providers" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      // Transform the data to flatten the stripe_customer_id
+      serviceProviders = (allProviders || []).map(provider => ({
+        id: provider.id,
+        subscription_status: provider.subscription_status,
+        auth_user_id: provider.auth_user_id,
+        stripe_customer_id: provider.subscriptions[0]?.stripe_customer_id
+      })).filter(provider => provider.stripe_customer_id);
+      
+      console.log(`🔄 Starting bulk sync for ${serviceProviders.length} service providers`);
+    } else {
+      // Get single service provider record with their subscription data
+      const { data: serviceProviderData, error: spError } = await supabaseClient
+        .from("service_providers")
+        .select(`
+          id, 
+          subscription_status, 
+          auth_user_id,
+          subscriptions(stripe_customer_id)
+        `)
+        .eq("auth_user_id", userId)
+        .single();
+
+      if (spError) {
+        console.error("Error fetching service provider:", spError);
+        return new Response(JSON.stringify({ error: "Service provider not found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      // Get the stripe_customer_id from the most recent subscription
+      const stripeCustomerId = serviceProviderData.subscriptions?.[0]?.stripe_customer_id;
+      
+      if (!stripeCustomerId) {
+        return new Response(JSON.stringify({ error: "No Stripe customer ID found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+
+      const serviceProvider = {
+        id: serviceProviderData.id,
+        subscription_status: serviceProviderData.subscription_status,
+        auth_user_id: serviceProviderData.auth_user_id,
+        stripe_customer_id: stripeCustomerId
+      };
+
+      serviceProviders = [serviceProvider];
     }
 
-    if (!serviceProvider.stripe_customer_id) {
-      return new Response(JSON.stringify({ error: "No Stripe customer ID found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
-    }
-
-    // Get all subscriptions for this customer from Stripe
-    const stripeSubscriptions = await stripe.subscriptions.list({
-      customer: serviceProvider.stripe_customer_id,
-      limit: 100,
-    });
-
-    // Get all local subscriptions for this service provider
-    const { data: localSubscriptions, error: localSubsError } = await supabaseClient
-      .from("subscriptions")
-      .select("*")
-      .eq("service_provider_id", serviceProvider.id)
-      .order("created_at", { ascending: false });
-
-    if (localSubsError) {
-      console.error("Error fetching local subscriptions:", localSubsError);
-      return new Response(JSON.stringify({ error: "Failed to fetch local subscriptions" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      });
-    }
-
-    const syncResults = {
-      synced: 0,
-      created: 0,
-      updated: 0,
+    const overallSyncResults = {
+      totalProviders: serviceProviders.length,
+      processedProviders: 0,
+      successfulProviders: 0,
+      failedProviders: 0,
+      totalSynced: 0,
+      totalCreated: 0,
+      totalUpdated: 0,
       errors: [] as string[],
-      activeSubscription: null as any,
+      providerResults: [] as any[],
     };
 
-    // Process each Stripe subscription
-    for (const stripeSubscription of stripeSubscriptions.data) {
+    // Process each service provider
+    for (const serviceProvider of serviceProviders) {
+      try {
+        console.log(`🔄 Processing service provider ${serviceProvider.id} (${serviceProvider.stripe_customer_id})`);
+        
+        // Get all subscriptions for this customer from Stripe
+        const stripeSubscriptions = await stripe.subscriptions.list({
+          customer: serviceProvider.stripe_customer_id,
+          limit: 100,
+        });
+
+        // Get all local subscriptions for this service provider
+        const { data: localSubscriptions, error: localSubsError } = await supabaseClient
+          .from("subscriptions")
+          .select("*")
+          .eq("service_provider_id", serviceProvider.id)
+          .order("created_at", { ascending: false });
+
+        if (localSubsError) {
+          console.error(`Error fetching local subscriptions for provider ${serviceProvider.id}:`, localSubsError);
+          overallSyncResults.errors.push(`Provider ${serviceProvider.id}: Failed to fetch local subscriptions - ${localSubsError.message}`);
+          overallSyncResults.failedProviders++;
+          continue;
+        }
+
+        const syncResults = {
+          serviceProviderId: serviceProvider.id,
+          synced: 0,
+          created: 0,
+          updated: 0,
+          errors: [] as string[],
+          activeSubscription: null as any,
+        };
+
+        // Process each Stripe subscription for this provider
+        for (const stripeSubscription of stripeSubscriptions.data) {
       try {
         // Find corresponding local subscription
         const localSubscription = localSubscriptions?.find(
@@ -102,18 +169,30 @@ serve(async (req: Request) => {
           }
         }
 
+        // Apply business logic for period dates based on subscription state
+        const shouldClearPeriodDates = finalSubscription.status === "canceled";
+        const shouldKeepPeriodDates = (
+          finalSubscription.status === "active" || 
+          finalSubscription.status === "trialing" ||
+          (finalSubscription.cancel_at_period_end && finalSubscription.status !== "canceled")
+        );
+
         const subscriptionData = {
           service_provider_id: serviceProvider.id,
           stripe_subscription_id: finalSubscription.id,
-          stripe_customer_id: serviceProvider.stripe_customer_id,
+          stripe_customer_id: finalSubscription.customer,
           stripe_price_id: finalSubscription.items.data[0]?.price?.id || null,
           status: finalSubscription.status,
-          current_period_start: finalSubscription.current_period_start
-            ? new Date(finalSubscription.current_period_start * 1000).toISOString()
-            : null,
-          current_period_end: finalSubscription.current_period_end
-            ? new Date(finalSubscription.current_period_end * 1000).toISOString()
-            : null,
+          current_period_start: shouldClearPeriodDates ? null : (
+            finalSubscription.current_period_start
+              ? new Date(finalSubscription.current_period_start * 1000).toISOString()
+              : null
+          ),
+          current_period_end: shouldClearPeriodDates ? null : (
+            finalSubscription.current_period_end
+              ? new Date(finalSubscription.current_period_end * 1000).toISOString()
+              : null
+          ),
           cancel_at_period_end: finalSubscription.cancel_at_period_end,
           canceled_at: finalSubscription.canceled_at
             ? new Date(finalSubscription.canceled_at * 1000).toISOString()
@@ -171,47 +250,108 @@ serve(async (req: Request) => {
           };
         }
 
-        syncResults.synced++;
-      } catch (error) {
-        console.error(`Error processing subscription ${stripeSubscription.id}:`, error);
-        syncResults.errors.push(
-          `Error processing subscription ${stripeSubscription.id}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
+          syncResults.synced++;
+        } catch (error) {
+          console.error(`Error processing subscription ${stripeSubscription.id}:`, error);
+          syncResults.errors.push(
+            `Error processing subscription ${stripeSubscription.id}: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
-    }
 
-    // Update service provider subscription status
-    const hasActiveSubscription = syncResults.activeSubscription !== null;
-    const hasSubscriptionHistory = stripeSubscriptions.data.length > 0;
+      // Update service provider subscription status
+      const hasActiveSubscription = syncResults.activeSubscription !== null;
+      const hasSubscriptionHistory = stripeSubscriptions.data.length > 0;
 
-    const { error: spUpdateError } = await supabaseClient
-      .from("service_providers")
-      .update({
-        subscription_status: hasActiveSubscription ? "active" : "inactive",
-      })
-      .eq("id", serviceProvider.id);
+      const { error: spUpdateError } = await supabaseClient
+        .from("service_providers")
+        .update({
+          subscription_status: hasActiveSubscription ? "active" : "inactive",
+        })
+        .eq("id", serviceProvider.id);
 
-    if (spUpdateError) {
-      console.error("Error updating service provider:", spUpdateError);
-      syncResults.errors.push(`Failed to update service provider status: ${spUpdateError.message}`);
-    }
+      if (spUpdateError) {
+        console.error(`Error updating service provider ${serviceProvider.id}:`, spUpdateError);
+        syncResults.errors.push(`Failed to update service provider status: ${spUpdateError.message}`);
+        overallSyncResults.errors.push(`Provider ${serviceProvider.id}: Failed to update status - ${spUpdateError.message}`);
+      }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        syncResults,
+      // Add this provider's results to overall results
+      overallSyncResults.totalSynced += syncResults.synced;
+      overallSyncResults.totalCreated += syncResults.created;
+      overallSyncResults.totalUpdated += syncResults.updated;
+      overallSyncResults.errors.push(...syncResults.errors);
+      overallSyncResults.providerResults.push({
+        serviceProviderId: serviceProvider.id,
+        ...syncResults,
         hasActiveSubscription,
         hasSubscriptionHistory,
-        activeSubscription: syncResults.activeSubscription,
-        message: `Sync completed: ${syncResults.created} created, ${syncResults.updated} updated, ${syncResults.errors.length} errors`,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      });
+
+      if (syncResults.errors.length === 0) {
+        overallSyncResults.successfulProviders++;
+      } else {
+        overallSyncResults.failedProviders++;
       }
-    );
+
+      console.log(`✅ Completed provider ${serviceProvider.id}: ${syncResults.created} created, ${syncResults.updated} updated, ${syncResults.errors.length} errors`);
+
+    } catch (error) {
+      console.error(`❌ Error processing service provider ${serviceProvider.id}:`, error);
+      overallSyncResults.errors.push(`Provider ${serviceProvider.id}: ${error instanceof Error ? error.message : String(error)}`);
+      overallSyncResults.failedProviders++;
+    }
+
+    overallSyncResults.processedProviders++;
+  }
+
+    // Prepare response based on sync type
+    if (syncAll) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          syncType: "bulk",
+          overallResults: overallSyncResults,
+          message: `Bulk sync completed: ${overallSyncResults.processedProviders}/${overallSyncResults.totalProviders} providers processed, ${overallSyncResults.totalCreated} created, ${overallSyncResults.totalUpdated} updated, ${overallSyncResults.errors.length} errors`,
+          summary: {
+            totalProviders: overallSyncResults.totalProviders,
+            successfulProviders: overallSyncResults.successfulProviders,
+            failedProviders: overallSyncResults.failedProviders,
+            totalSubscriptions: overallSyncResults.totalSynced,
+          }
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } else {
+      // Single provider sync - return original format for backward compatibility
+      const singleResult = overallSyncResults.providerResults[0];
+      return new Response(
+        JSON.stringify({
+          success: true,
+          syncType: "single",
+          syncResults: {
+            synced: singleResult.synced,
+            created: singleResult.created,
+            updated: singleResult.updated,
+            errors: singleResult.errors,
+            activeSubscription: singleResult.activeSubscription,
+          },
+          hasActiveSubscription: singleResult.hasActiveSubscription,
+          hasSubscriptionHistory: singleResult.hasSubscriptionHistory,
+          activeSubscription: singleResult.activeSubscription,
+          message: `Sync completed: ${singleResult.created} created, ${singleResult.updated} updated, ${singleResult.errors.length} errors`,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
   } catch (err) {
     console.error("Sync error:", err);
     return new Response(
