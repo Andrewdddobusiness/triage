@@ -29,7 +29,7 @@ export function BillingActions({ hasActiveSubscription, hasSubscriptionHistory, 
           Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ userId: userId }),
       });
 
       if (response.ok) {
@@ -62,7 +62,7 @@ export function BillingActions({ hasActiveSubscription, hasSubscriptionHistory, 
           Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ userId: userId }),
       });
 
       if (response.ok) {

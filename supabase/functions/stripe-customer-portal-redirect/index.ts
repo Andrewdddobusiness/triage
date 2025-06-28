@@ -11,21 +11,28 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Redirect to the subscription screen in the mobile app
-    const deepLink = "spaak://subscription";
-
-    // Direct redirect to the deep link
+    // Redirect back to the billing page in the web app
+    const redirectUrl = `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing`;
+    
     return new Response(null, {
       status: 302,
       headers: {
-        Location: deepLink,
+        "Location": redirectUrl,
         ...corsHeaders,
       },
     });
   } catch (error) {
-    return new Response("Error", {
-      status: 500,
-      headers: corsHeaders,
+    console.error("Customer portal redirect error:", error);
+    
+    // Fallback redirect to billing page
+    const fallbackUrl = `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing`;
+    
+    return new Response(null, {
+      status: 302,
+      headers: {
+        "Location": fallbackUrl,
+        ...corsHeaders,
+      },
     });
   }
 });

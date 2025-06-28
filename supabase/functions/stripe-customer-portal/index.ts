@@ -31,7 +31,8 @@ serve(async (req: Request) => {
       .single();
 
     if (spError) {
-      return new Response(JSON.stringify({ error: "Service provider not found" }), {
+      console.error("Service provider lookup error:", spError, "for userId:", userId);
+      return new Response(JSON.stringify({ error: "Service provider not found", details: spError.message }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
@@ -45,7 +46,8 @@ serve(async (req: Request) => {
       .single();
 
     if (subError) {
-      return new Response(JSON.stringify({ error: "No subscription found" }), {
+      console.error("Subscription lookup error:", subError, "for serviceProviderId:", serviceProvider.id);
+      return new Response(JSON.stringify({ error: "No subscription found", details: subError.message }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
@@ -63,7 +65,10 @@ serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("Customer portal error:", err);
-    return new Response(JSON.stringify({ error: "Failed to create portal session" }), {
+    return new Response(JSON.stringify({ 
+      error: "Failed to create portal session", 
+      details: err instanceof Error ? err.message : "Unknown error"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
