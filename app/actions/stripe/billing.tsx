@@ -11,7 +11,7 @@ interface BillingActionsProps {
   userId: string;
   subscription?: {
     status: string;
-    current_period_end: string;
+    current_period_end: string | null;
     cancel_at_period_end: boolean;
     canceled_at?: string;
   };
@@ -127,7 +127,7 @@ export function BillingActions({
       } else {
         const errorData = await response.json();
         console.error("Error accessing customer portal:", errorData);
-        
+
         // If portal fails and fallback is enabled, try checkout instead
         if (fallbackToCheckout) {
           console.log("Portal failed, falling back to checkout flow");
@@ -136,7 +136,7 @@ export function BillingActions({
       }
     } catch (error) {
       console.error("Error accessing customer portal:", error);
-      
+
       // If portal fails and fallback is enabled, try checkout instead
       if (fallbackToCheckout) {
         console.log("Portal failed with exception, falling back to checkout flow");
