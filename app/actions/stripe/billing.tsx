@@ -97,7 +97,7 @@ export function BillingActions({
     }
   };
 
-  const handleManageSubscription = async () => {
+  const handleManageSubscription = async (fallbackToCheckout = false) => {
     try {
       const supabase = createClient();
       const {
@@ -106,6 +106,9 @@ export function BillingActions({
 
       if (!session) {
         console.error("No active session");
+        if (fallbackToCheckout) {
+          await handleStartSubscription();
+        }
         return;
       }
 
@@ -124,9 +127,21 @@ export function BillingActions({
       } else {
         const errorData = await response.json();
         console.error("Error accessing customer portal:", errorData);
+        
+        // If portal fails and fallback is enabled, try checkout instead
+        if (fallbackToCheckout) {
+          console.log("Portal failed, falling back to checkout flow");
+          await handleStartSubscription();
+        }
       }
     } catch (error) {
       console.error("Error accessing customer portal:", error);
+      
+      // If portal fails and fallback is enabled, try checkout instead
+      if (fallbackToCheckout) {
+        console.log("Portal failed with exception, falling back to checkout flow");
+        await handleStartSubscription();
+      }
     }
   };
 
@@ -141,7 +156,8 @@ export function BillingActions({
     }
 
     if (reactivationStatus.action === "portal") {
-      await handleManageSubscription();
+      // Try portal first, but fallback to checkout if it fails
+      await handleManageSubscription(true);
     } else {
       await handleStartSubscription();
     }
@@ -153,7 +169,7 @@ export function BillingActions({
     if (hasActiveSubscription && !subscription?.cancel_at_period_end) {
       return {
         text: "Manage Subscription",
-        action: handleManageSubscription,
+        action: () => handleManageSubscription(false),
         description: "View billing history and manage your subscription",
       };
     }

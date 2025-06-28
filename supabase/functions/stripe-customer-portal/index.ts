@@ -38,16 +38,27 @@ serve(async (req: Request) => {
       });
     }
 
-    // Get subscription to find Stripe customer ID
-    const { data: subscription, error: subError } = await supabaseClient
+    // Get the most recent subscription to find Stripe customer ID
+    const { data: subscriptions, error: subError } = await supabaseClient
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, stripe_subscription_id, status")
       .eq("service_provider_id", serviceProvider.id)
-      .single();
+      .order("created_at", { ascending: false });
 
-    if (subError) {
+    if (subError || !subscriptions || subscriptions.length === 0) {
       console.error("Subscription lookup error:", subError, "for serviceProviderId:", serviceProvider.id);
-      return new Response(JSON.stringify({ error: "No subscription found", details: subError.message }), {
+      return new Response(JSON.stringify({ error: "No subscription found", details: subError?.message || "No subscriptions exist" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
+    }
+
+    // Use the most recent subscription's customer ID
+    const subscription = subscriptions[0];
+    
+    if (!subscription.stripe_customer_id) {
+      console.error("No Stripe customer ID found for serviceProviderId:", serviceProvider.id);
+      return new Response(JSON.stringify({ error: "No Stripe customer ID found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });

@@ -46,21 +46,10 @@ serve(async (req: Request) => {
       apiVersion: "2024-06-20",
     });
 
-    // Get service provider and their subscription data
+    // Get service provider data
     const { data: serviceProviderData, error: spError } = await supabaseClient
       .from("service_providers")
-      .select(`
-        id, 
-        subscription_status, 
-        auth_user_id,
-        subscriptions(
-          stripe_customer_id,
-          stripe_subscription_id,
-          status,
-          current_period_end,
-          cancel_at_period_end
-        )
-      `)
+      .select("id, subscription_status, auth_user_id")
       .eq("auth_user_id", userId)
       .single();
 
@@ -77,8 +66,44 @@ serve(async (req: Request) => {
       );
     }
 
+    // Get the most recent subscription separately to ensure proper ordering
+    const { data: subscriptions, error: subsError } = await supabaseClient
+      .from("subscriptions")
+      .select(`
+        stripe_customer_id,
+        stripe_subscription_id,
+        status,
+        current_period_end,
+        cancel_at_period_end,
+        created_at
+      `)
+      .eq("service_provider_id", serviceProviderData.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (subsError || !subscriptions || subscriptions.length === 0) {
+      console.error("Error fetching subscriptions:", subsError);
+      return new Response(
+        JSON.stringify({
+          error: "No subscription found",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        }
+      );
+    }
+
     // Get the most recent subscription
-    const localSubscription = serviceProviderData.subscriptions?.[0];
+    const localSubscription = subscriptions[0];
+
+    console.log(`📋 Local subscription data:`, {
+      id: localSubscription.stripe_subscription_id,
+      status: localSubscription.status,
+      cancel_at_period_end: localSubscription.cancel_at_period_end,
+      current_period_end: localSubscription.current_period_end,
+      created_at: localSubscription.created_at,
+    });
     
     if (!localSubscription?.stripe_subscription_id) {
       // No subscription found - user should create new one
