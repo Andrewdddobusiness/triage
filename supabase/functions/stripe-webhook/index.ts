@@ -167,16 +167,24 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription, supab
 
     let serviceProviderId = existingSub?.service_provider_id;
 
-    // If no existing subscription found, get service provider ID from customer metadata
+    // If no existing subscription found, get service provider ID from customer or subscription metadata
     if (!serviceProviderId) {
+      // Try customer metadata first
       serviceProviderId = (customer as any).metadata?.service_provider_id;
+      
+      // If not in customer metadata, check subscription metadata
+      if (!serviceProviderId) {
+        serviceProviderId = subscription.metadata?.service_provider_id;
+      }
 
       // If still no service provider ID, try to find by customer email
       if (!serviceProviderId && (customer as any).email) {
         const { data: serviceProvider } = await supabaseClient
           .from("service_providers")
           .select("id")
-          .eq("email", (customer as any).email)
+          .eq("auth_user_id", (
+            await supabaseClient.auth.admin.getUserByEmail((customer as any).email)
+          ).data.user?.id)
           .maybeSingle();
 
         serviceProviderId = serviceProvider?.id;

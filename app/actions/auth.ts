@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -15,7 +16,11 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-up", "Email and password are required");
   }
 
-  const { error } = await supabase.auth.signUp({
+  if (!name) {
+    return encodedRedirect("error", "/sign-up", "Name is required");
+  }
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -26,13 +31,28 @@ export const signUpAction = async (formData: FormData) => {
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link."
-    );
   }
+
+  // Create service provider record if user was created successfully
+  if (data.user) {
+    const { error: serviceProviderError } = await supabase.from("service_providers").insert({
+      auth_user_id: data.user.id,
+      owner_name: name,
+      onboarding_status: "pending",
+    });
+
+    if (serviceProviderError) {
+      console.error("Failed to create service provider:", serviceProviderError);
+      // Note: We don't return an error here as the user account was created successfully
+      // The service provider record can be created later if needed
+    }
+  }
+
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Thanks for signing up! Please check your email for a verification link."
+  );
 };
 
 export const signInAction = async (formData: FormData) => {

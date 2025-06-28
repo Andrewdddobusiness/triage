@@ -14,13 +14,15 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
     
-    const deepLink = status === "success" ? "spaak://payment-success" : "spaak://payment-cancelled";
+    // Redirect to your web app pages instead of deep links
+    const redirectUrl = status === "success" 
+      ? `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing?payment=success`
+      : `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing?payment=cancelled`;
     
-    // Just do a direct redirect without any HTML
     return new Response(null, {
       status: 302,
       headers: {
-        "Location": deepLink,
+        "Location": redirectUrl,
         ...corsHeaders,
       },
     });

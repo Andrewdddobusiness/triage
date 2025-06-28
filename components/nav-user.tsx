@@ -15,6 +15,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
 import { signOutAction } from "@/app/actions/auth";
+import Link from "next/link";
 
 export function NavUser({
   user,
@@ -54,13 +55,17 @@ export function NavUser({
             sideOffset={4}
           >
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-not-allowed hover:bg-transparent">
-                <UserCircleIcon />
-                Account
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/account" className="cursor-pointer">
+                  <UserCircleIcon />
+                  Account
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-not-allowed hover:bg-transparent">
-                <CreditCardIcon />
-                Billing
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/billing" className="flex items-center">
+                  <CreditCardIcon />
+                  Billing
+                </Link>
               </DropdownMenuItem>
               {/* <DropdownMenuItem>
                 <BellIcon />

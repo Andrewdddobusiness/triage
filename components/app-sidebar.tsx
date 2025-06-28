@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { createClient } from "@/utils/supabase/client";
 import { useEffect } from "react";
+import Image from "next/image";
 
 const data = {
   user: {
@@ -113,12 +114,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
-                <div className="text-orange-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                    <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
-                  </svg>
-                </div>
-                <span className="text-base font-semibold">Triage</span>
+                <Image 
+                  src="/logos/logo-color.png" 
+                  alt="Spaak Logo" 
+                  width={32} 
+                  height={32} 
+                  className="text-orange-500"
+                />
+                <span className="text-base font-semibold">Spaak</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

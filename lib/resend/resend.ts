@@ -7,7 +7,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = "Triage <no-reply@yourdomain.com>",
+  from = "Spaak <no-reply@yourdomain.com>",
 }: {
   to: string;
   subject: string;

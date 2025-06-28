@@ -107,6 +107,9 @@ dependencies:
   sonner:
     specifier: ^2.0.3
     version: 2.0.3(react-dom@19.0.0)(react@19.0.0)
+  stripe:
+    specifier: ^18.2.1
+    version: 18.2.1(@types/node@22.10.2)
   twilio:
     specifier: ^5.5.1
     version: 5.6.1
@@ -3084,6 +3087,19 @@ packages:
     dependencies:
       ansi-regex: 6.1.0
     dev: true
+
+  /stripe@18.2.1(@types/node@22.10.2):
+    resolution: {integrity: sha512-GwB1B7WSwEBzW4dilgyJruUYhbGMscrwuyHsPUmSRKrGHZ5poSh2oU9XKdii5BFVJzXHn35geRvGJ6R8bYcp8w==}
+    engines: {node: '>=12.*'}
+    peerDependencies:
+      '@types/node': '>=12.x.x'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 22.10.2
+      qs: 6.14.0
+    dev: false
 
   /styled-jsx@5.1.6(react@19.0.0):
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
