@@ -1,7 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
-import { BillingActions } from "@/app/actions/stripe/billing";
 import { fetchInvoices, type Invoice } from "@/app/actions/stripe/invoice";
 import {
   Breadcrumb,
@@ -13,22 +12,19 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  CreditCardIcon,
   CalendarIcon,
-  DollarSignIcon,
   AlertCircleIcon,
-  CheckCircleIcon,
-  CheckIcon,
   DownloadIcon,
   SearchIcon,
   FilterIcon,
 } from "lucide-react";
 import { PaymentNotification } from "./payment-notification";
+import { SubscriptionSection } from "./subscription-section";
 
 interface SubscriptionData {
   hasActiveSubscription: boolean;
@@ -41,6 +37,7 @@ interface SubscriptionData {
     canceled_at?: string;
     trial_end?: string;
     billing_cycle: string;
+    plan_name?: string;
   };
 }
 
@@ -83,31 +80,6 @@ export default async function BillingPage() {
 
   // Fetch real invoice data
   const invoiceData = await fetchInvoices({ limit: 20 });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">Active</Badge>;
-      case "trialing":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Trial</Badge>;
-      case "canceled":
-        return <Badge variant="destructive">Canceled</Badge>;
-      case "past_due":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">Past Due</Badge>
-        );
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   const formatInvoiceDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString("en-AU", {
@@ -170,51 +142,7 @@ export default async function BillingPage() {
           </div>
 
           {/* Subscription Status Card */}
-          <div className="grid gap-4">
-            <Card>
-              <CardContent className="p-6">
-                {subscriptionData.hasActiveSubscription ? (
-                  <>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <CheckCircleIcon className="h-8 w-8 text-green-500" />
-                        <div>
-                          <h3 className="text-lg font-semibold">Pro Plan Active</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {subscriptionData.subscription && (
-                              <>Next billing: {formatDate(subscriptionData.subscription.current_period_end)}</>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      {subscriptionData.subscription && getStatusBadge(subscriptionData.subscription.status)}
-                    </div>
-                    <BillingActions hasActiveSubscription={true} hasSubscriptionHistory={true} userId={user.id} />
-                  </>
-                ) : subscriptionData.hasSubscriptionHistory ? (
-                  <>
-                    <div className="text-center py-8">
-                      <AlertCircleIcon className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Subscription Inactive</h3>
-                      <p className="text-zinc-600 mb-6">
-                        Your subscription is not currently active. Reactivate to continue using all features.
-                      </p>
-                      <BillingActions hasActiveSubscription={false} hasSubscriptionHistory={true} userId={user.id} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-center py-8">
-                      <CreditCardIcon className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Subscription</h3>
-                      <p className="text-zinc-600 mb-6">Start your subscription to access all features.</p>
-                      <BillingActions hasActiveSubscription={false} hasSubscriptionHistory={false} userId={user.id} />
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <SubscriptionSection subscriptionData={subscriptionData} userId={user.id} />
 
           {/* Previous Invoices Section */}
           <div className="space-y-6">

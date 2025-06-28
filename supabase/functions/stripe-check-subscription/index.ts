@@ -62,9 +62,17 @@ serve(async (req: Request) => {
       try {
         const stripeSubscription = await stripe.subscriptions.retrieve(latestSubscription.stripe_subscription_id);
 
-        // Force update local subscription status if it differs
-        if (stripeSubscription.status !== latestSubscription.status) {
-          console.log(`🔄 Syncing subscription status: ${latestSubscription.status} -> ${stripeSubscription.status}`);
+        // Force update local subscription status if it differs OR if cancel_at_period_end has changed
+        const needsSync = stripeSubscription.status !== latestSubscription.status ||
+                         stripeSubscription.cancel_at_period_end !== latestSubscription.cancel_at_period_end;
+
+        if (needsSync) {
+          console.log(`🔄 Syncing subscription data:`, {
+            old_status: latestSubscription.status,
+            new_status: stripeSubscription.status,
+            old_cancel_at_period_end: latestSubscription.cancel_at_period_end,
+            new_cancel_at_period_end: stripeSubscription.cancel_at_period_end
+          });
 
           await supabaseClient
             .from("subscriptions")

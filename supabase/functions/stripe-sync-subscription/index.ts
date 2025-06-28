@@ -82,19 +82,43 @@ serve(async (req: Request) => {
           (sub) => sub.stripe_subscription_id === stripeSubscription.id
         );
 
+        // Handle potential null period dates for active subscriptions by re-fetching from Stripe
+        let finalSubscription = stripeSubscription;
+        if ((!stripeSubscription.current_period_start || !stripeSubscription.current_period_end) && 
+            (stripeSubscription.status === 'active' || stripeSubscription.status === 'trialing')) {
+          
+          console.log(`🔄 Period dates missing for active subscription ${stripeSubscription.id}, re-fetching from Stripe...`);
+          
+          try {
+            finalSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+            console.log(`✅ Re-fetched subscription with periods:`, {
+              current_period_start: finalSubscription.current_period_start,
+              current_period_end: finalSubscription.current_period_end,
+              status: finalSubscription.status
+            });
+          } catch (fetchError) {
+            console.warn(`⚠️ Could not re-fetch subscription ${stripeSubscription.id}:`, fetchError);
+            // Continue with original subscription data
+          }
+        }
+
         const subscriptionData = {
           service_provider_id: serviceProvider.id,
-          stripe_subscription_id: stripeSubscription.id,
+          stripe_subscription_id: finalSubscription.id,
           stripe_customer_id: serviceProvider.stripe_customer_id,
-          stripe_price_id: stripeSubscription.items.data[0]?.price?.id || null,
-          status: stripeSubscription.status,
-          current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-          canceled_at: stripeSubscription.canceled_at
-            ? new Date(stripeSubscription.canceled_at * 1000).toISOString()
+          stripe_price_id: finalSubscription.items.data[0]?.price?.id || null,
+          status: finalSubscription.status,
+          current_period_start: finalSubscription.current_period_start
+            ? new Date(finalSubscription.current_period_start * 1000).toISOString()
             : null,
-          trial_end: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000).toISOString() : null,
+          current_period_end: finalSubscription.current_period_end
+            ? new Date(finalSubscription.current_period_end * 1000).toISOString()
+            : null,
+          cancel_at_period_end: finalSubscription.cancel_at_period_end,
+          canceled_at: finalSubscription.canceled_at
+            ? new Date(finalSubscription.canceled_at * 1000).toISOString()
+            : null,
+          trial_end: finalSubscription.trial_end ? new Date(finalSubscription.trial_end * 1000).toISOString() : null,
         };
 
         if (!localSubscription) {
@@ -112,10 +136,13 @@ serve(async (req: Request) => {
           // Check if update is needed
           const needsUpdate =
             forceSync ||
-            localSubscription.status !== stripeSubscription.status ||
+            localSubscription.status !== finalSubscription.status ||
             localSubscription.current_period_start !== subscriptionData.current_period_start ||
             localSubscription.current_period_end !== subscriptionData.current_period_end ||
-            localSubscription.cancel_at_period_end !== stripeSubscription.cancel_at_period_end;
+            localSubscription.cancel_at_period_end !== finalSubscription.cancel_at_period_end ||
+            // Force update if local period dates are null but Stripe has them
+            (!localSubscription.current_period_start && subscriptionData.current_period_start) ||
+            (!localSubscription.current_period_end && subscriptionData.current_period_end);
 
           if (needsUpdate) {
             const { error: updateError } = await supabaseClient
@@ -129,17 +156,17 @@ serve(async (req: Request) => {
             } else {
               syncResults.updated++;
               console.log(
-                `🔄 Updated subscription ${stripeSubscription.id}: ${localSubscription.status} -> ${stripeSubscription.status}`
+                `🔄 Updated subscription ${finalSubscription.id}: ${localSubscription.status} -> ${finalSubscription.status}`
               );
             }
           }
         }
 
         // Track active subscription
-        if (stripeSubscription.status === "active" || stripeSubscription.status === "trialing") {
+        if (finalSubscription.status === "active" || finalSubscription.status === "trialing") {
           syncResults.activeSubscription = {
-            id: stripeSubscription.id,
-            status: stripeSubscription.status,
+            id: finalSubscription.id,
+            status: finalSubscription.status,
             current_period_end: subscriptionData.current_period_end,
           };
         }

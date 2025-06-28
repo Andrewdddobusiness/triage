@@ -19,16 +19,17 @@ export function PaymentNotification() {
     if (payment === "success") {
       setNotification({
         type: "success",
-        message: "Payment successful! Your subscription is now active."
+        message: "Payment successful! Your subscription is being activated."
       });
       
-      // Clear the URL parameter after showing notification
+      // Clear the URL parameter and notification after a short delay
       setTimeout(() => {
         const url = new URL(window.location.href);
         url.searchParams.delete("payment");
         router.replace(url.pathname + url.search);
         setNotification({ type: null, message: "" });
-      }, 5000);
+      }, 4000);
+      
     } else if (payment === "cancelled") {
       setNotification({
         type: "cancelled",
@@ -61,4 +62,10 @@ export function PaymentNotification() {
       </AlertDescription>
     </Alert>
   );
+}
+
+// Export a hook to check if payment is being processed
+export function usePaymentProcessing() {
+  const searchParams = useSearchParams();
+  return searchParams.get("payment") === "success";
 }

@@ -42,6 +42,21 @@ serve(async (req: Request) => {
         await handleSubscriptionCancellation(deletedSubscription, supabaseClient);
         break;
       }
+      // Handle subscription cancellation events (when cancel_at_period_end is set)
+      case "invoice.payment_succeeded":
+      case "invoice.payment_failed": {
+        // These events often accompany subscription status changes
+        const invoice = event.data.object as Stripe.Invoice;
+        if (invoice.subscription) {
+          // Re-fetch and sync the subscription status
+          const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
+            apiVersion: "2024-06-20",
+          });
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          await handleSubscriptionUpdateWithRetries(subscription, supabaseClient);
+        }
+        break;
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -139,19 +154,47 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription, supab
     });
     const customer = await stripe.customers.retrieve(subscription.customer as string);
 
+    // If period dates are null but subscription is active, re-fetch from Stripe to get latest data
+    let finalSubscription = subscription;
+    if ((!subscription.current_period_start || !subscription.current_period_end) && 
+        (subscription.status === 'active' || subscription.status === 'trialing')) {
+      
+      console.log(`🔄 Period dates missing for active subscription ${subscription.id}, re-fetching from Stripe...`);
+      
+      try {
+        finalSubscription = await stripe.subscriptions.retrieve(subscription.id);
+        console.log(`✅ Re-fetched subscription with periods:`, {
+          current_period_start: finalSubscription.current_period_start,
+          current_period_end: finalSubscription.current_period_end,
+          status: finalSubscription.status
+        });
+      } catch (fetchError) {
+        console.warn(`⚠️ Could not re-fetch subscription ${subscription.id}:`, fetchError);
+        // Continue with original subscription data
+      }
+    }
+
     const subscriptionData = {
-      stripe_customer_id: subscription.customer,
-      stripe_subscription_id: subscription.id,
-      stripe_price_id: subscription.items.data[0]?.price?.id,
-      status: subscription.status,
-      current_period_start: subscription.current_period_start
-        ? new Date(subscription.current_period_start * 1000).toISOString()
+      stripe_customer_id: finalSubscription.customer,
+      stripe_subscription_id: finalSubscription.id,
+      stripe_price_id: finalSubscription.items.data[0]?.price?.id,
+      status: finalSubscription.status,
+      current_period_start: finalSubscription.current_period_start
+        ? new Date(finalSubscription.current_period_start * 1000).toISOString()
         : null,
-      current_period_end: subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000).toISOString()
+      current_period_end: finalSubscription.current_period_end
+        ? new Date(finalSubscription.current_period_end * 1000).toISOString()
         : null,
-      cancel_at_period_end: subscription.cancel_at_period_end,
+      cancel_at_period_end: finalSubscription.cancel_at_period_end,
     };
+
+    console.log(`📊 Syncing subscription ${finalSubscription.id}:`, {
+      status: finalSubscription.status,
+      cancel_at_period_end: finalSubscription.cancel_at_period_end,
+      canceled_at: finalSubscription.canceled_at,
+      current_period_start: subscriptionData.current_period_start,
+      current_period_end: subscriptionData.current_period_end
+    });
 
     // First, try to find existing subscription by stripe_subscription_id
     const { data: existingSub, error: selectError } = await supabaseClient
@@ -213,7 +256,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription, supab
     }
 
     // Update service provider subscription status
-    const isActive = subscription.status === "active" || subscription.status === "trialing";
+    // Consider subscription active if it's active or trialing, even if cancel_at_period_end is true
+    // This allows access until the period actually ends
+    const isActive = (subscription.status === "active" || subscription.status === "trialing");
     const { error: updateError } = await supabaseClient
       .from("service_providers")
       .update({ subscription_status: isActive ? "active" : "inactive" })
@@ -223,11 +268,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription, supab
       console.error("Error updating service provider:", updateError);
       return false;
     } else {
+      const statusMessage = subscription.cancel_at_period_end 
+        ? `${subscription.status} (cancelled, ends ${subscriptionData.current_period_end})`
+        : subscription.status;
       console.log(
         `✅ ${existingSub ? "Updated" : "Created"} subscription:`,
         subscription.id,
         "Status:",
-        subscription.status
+        statusMessage
       );
       return true;
     }
