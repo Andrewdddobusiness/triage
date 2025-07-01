@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     // Give auth state time to stabilize after mounting
     const timer = setTimeout(() => {
       setAuthCheckComplete(true);
-    }, 500);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, []);
@@ -65,13 +65,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
     );
-  }
-
-  // Only check authentication after component is mounted and auth check is complete
-  if (authCheckComplete && !isAuthenticated) {
-    console.log("🚫 Dashboard Layout - Not authenticated after check complete, redirecting to sign-in");
-    router.push("/sign-in");
-    return null;
   }
 
   // Show onboarding screen for first-time users without subscription
