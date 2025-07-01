@@ -4,15 +4,23 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
 
 const SpaakLogo = "/logos/logo-color.png";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isAuthenticated, isLoading, user, isHydrated } = useAuthStore();
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
+  };
+
+  const handleDashboardClick = () => {
+    router.push('/dashboard');
   };
 
   // Add scroll event listener to detect when user scrolls
@@ -74,15 +82,39 @@ export default function Navbar() {
           <div id="navbar-default" className={`${isMenuOpen ? "block" : "hidden"} w-full md:block md:w-auto`}>
             <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-white md:bg-transparent">
               <div className="flex items-center space-x-4 flex-1 justify-end bg-transparent">
-                <Link href="/sign-in" passHref legacyBehavior>
-                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 bg-white">
-                    Sign In
-                  </Button>
-                </Link>
+                {!isHydrated || isLoading ? (
+                  // Loading state
+                  <div className="flex items-center space-x-4">
+                    <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ) : isAuthenticated ? (
+                  // Authenticated state - show Dashboard button
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600 hidden md:block">
+                      Welcome, {user?.email?.split('@')[0] || 'User'}
+                    </span>
+                    <Button 
+                      onClick={handleDashboardClick}
+                      className="bg-orange-500 text-white hover:bg-orange-600"
+                    >
+                      Dashboard
+                    </Button>
+                  </div>
+                ) : (
+                  // Unauthenticated state - show Sign In / Sign Up
+                  <>
+                    <Link href="/sign-in" passHref legacyBehavior>
+                      <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 bg-white">
+                        Sign In
+                      </Button>
+                    </Link>
 
-                <Link href="/sign-up" passHref legacyBehavior>
-                  <Button className="bg-orange-500 text-white hover:bg-orange-600">Sign Up</Button>
-                </Link>
+                    <Link href="/sign-up" passHref legacyBehavior>
+                      <Button className="bg-orange-500 text-white hover:bg-orange-600">Sign Up</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </ul>
           </div>

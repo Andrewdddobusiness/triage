@@ -13,10 +13,12 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password) {
+    console.error("Email and password are required");
     return encodedRedirect("error", "/sign-up", "Email and password are required");
   }
 
   if (!name) {
+    console.error("Name is required");
     return encodedRedirect("error", "/sign-up", "Name is required");
   }
 
@@ -48,6 +50,13 @@ export const signUpAction = async (formData: FormData) => {
     }
   }
 
+  // Check if the user was immediately signed in (email confirmation disabled)
+  if (data.session) {
+    // User is automatically signed in, redirect to dashboard
+    return redirect("/dashboard");
+  }
+
+  // Email confirmation required, show success message
   return encodedRedirect(
     "success",
     "/sign-up",

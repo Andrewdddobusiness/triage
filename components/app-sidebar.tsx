@@ -2,11 +2,9 @@
 
 import * as React from "react";
 import { ArrowUpCircleIcon, CameraIcon, FileCodeIcon, FileTextIcon, LayoutDashboardIcon } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
 import { NavMain } from "@/components/nav-main";
-
 import { NavUser } from "@/components/nav-user";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   Sidebar,
   SidebarContent,
@@ -19,8 +17,6 @@ import {
 
 import { Separator } from "@/components/ui/separator";
 
-import { createClient } from "@/utils/supabase/client";
-import { useEffect } from "react";
 import Image from "next/image";
 
 const data = {
@@ -88,23 +84,12 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   //***** GET USER *****//
-  const { data: user, isLoading: isUserLoading } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-      if (error || !user) throw error;
-      return user;
-    },
-  });
+  const { user, isLoading } = useAuthStore();
 
   const userInfo = {
     // name: user?.user_metadata?.full_name || user?.email || "Anonymous",
     email: user?.email || "No Email",
-    avatar: user?.user_metadata?.avatar_url || "/default-avatar.png",
+    avatar: "/default-avatar.png", // We can add avatar support to the auth store later if needed
   };
 
   return (

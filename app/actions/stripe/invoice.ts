@@ -68,13 +68,10 @@ export async function fetchInvoices({
     const { data: subscription } = await supabase
       .from("subscriptions")
       .select("stripe_customer_id")
-      .eq("service_provider_id", (
-        await supabase
-          .from("service_providers")
-          .select("id")
-          .eq("auth_user_id", user.id)
-          .single()
-      ).data?.id)
+      .eq(
+        "service_provider_id",
+        (await supabase.from("service_providers").select("id").eq("auth_user_id", user.id).single()).data?.id
+      )
       .order("created_at", { ascending: false })
       .limit(1)
       .single();

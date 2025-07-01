@@ -15,6 +15,9 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
 import { signOutAction } from "@/app/actions/auth";
+import { useAuthStore } from "@/stores/auth-store";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export function NavUser({
@@ -27,6 +30,26 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      // Immediately update the local state for instant UI feedback
+      logout();
+      
+      // Sign out from Supabase client
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Navigate to home page using Next.js router
+      router.push('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // If anything fails, navigate to home page
+      router.push('/');
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -73,14 +96,10 @@ export function NavUser({
               </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <form action={signOutAction}>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <button type="submit" className="w-full flex items-center">
-                  <LogOutIcon className="mr-2 size-4" />
-                  Sign out
-                </button>
-              </DropdownMenuItem>
-            </form>
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+              <LogOutIcon className="mr-2 size-4" />
+              Sign out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

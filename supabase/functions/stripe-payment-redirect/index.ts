@@ -14,9 +14,10 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
     
-    // Redirect to your web app pages instead of deep links
+    // For successful payments, redirect to main dashboard for first-time users
+    // They'll be properly routed through onboarding or dashboard based on their state
     const redirectUrl = status === "success" 
-      ? `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing?payment=success`
+      ? `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard?payment=success`
       : `${Deno.env.get("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000"}/dashboard/billing?payment=cancelled`;
     
     return new Response(null, {

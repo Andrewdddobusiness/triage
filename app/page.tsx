@@ -1,4 +1,6 @@
 // app/(home-pages)/page.tsx
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,8 +16,21 @@ import {
 import dashboard from "@/public/images/dashboard.png";
 import HomeLayout from "@/components/layouts/home-layout";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    } else {
+      router.push('/sign-up');
+    }
+  };
+
   return (
     <HomeLayout>
       {/* Hero Section */}
@@ -31,11 +46,12 @@ export default function HomePage() {
                 answer their phone. When a call is missed, Spaak steps in.
               </p>
               <div className="mt-8">
-                <Link href="/sign-up" passHref>
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-md">
-                    Get Started
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleGetStarted}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-md"
+                >
+                  {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+                </Button>
                 {/* <Link href="/demo" passHref>
                   <Button variant="outline" className="ml-4 border-orange-500 text-orange-500 hover:bg-orange-50">
                     Schedule a call
@@ -165,11 +181,12 @@ export default function HomePage() {
             Join the growing community of trade professionals who rely on Spaak to capture leads while they focus on
             their craft.
           </p>
-          <Link href="/sign-up" passHref>
-            <Button className="bg-white text-orange-500 hover:bg-gray-100 font-medium py-3 px-8 rounded-md">
-              Get Started
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleGetStarted}
+            className="bg-white text-orange-500 hover:bg-gray-100 font-medium py-3 px-8 rounded-md"
+          >
+            {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+          </Button>
         </div>
       </section>
     </HomeLayout>

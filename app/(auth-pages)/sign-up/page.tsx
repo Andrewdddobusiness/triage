@@ -2,6 +2,9 @@
 
 import { signUpAction } from "@/app/actions/auth";
 import { signInWithGoogleAction } from "@/app/actions/auth";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth-store";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +37,9 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
 
   // Validation states
   const [nameError, setNameError] = useState("");
@@ -122,14 +128,70 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
     }
   };
 
-  // Handle form submission with loading state
+  // Handle form submission with client-side auth
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
-      await signUpAction(formData);
+      const supabase = createClient();
+      
+      // Sign up the user with Supabase client
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error("Sign up error:", error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // Create service provider record
+      if (data.user) {
+        const { error: serviceProviderError } = await supabase.from("service_providers").insert({
+          auth_user_id: data.user.id,
+          owner_name: name,
+          onboarding_status: "pending",
+        });
+
+        if (serviceProviderError) {
+          console.error("Failed to create service provider:", serviceProviderError);
+        }
+      }
+
+      // Check if user was immediately signed in (email confirmation disabled)
+      if (data.session) {
+        console.log("✅ User signed in immediately with session:", data.session.user.id);
+        console.log("📍 Current location:", window.location.href);
+        console.log("🔄 Waiting for auth state update...");
+        
+        // Show redirecting state
+        setIsRedirecting(true);
+        
+        // Wait for auth state to be updated, then redirect
+        const waitForAuth = () => {
+          const { isAuthenticated } = useAuthStore.getState();
+          if (isAuthenticated) {
+            console.log("🚀 Auth state updated, redirecting to dashboard");
+            router.push('/dashboard');
+          } else {
+            console.log("⏳ Still waiting for auth state...");
+            setTimeout(waitForAuth, 100);
+          }
+        };
+        
+        // Start checking after a short delay
+        setTimeout(waitForAuth, 200);
+        return;
+      }
+
+      // Email confirmation required
+      console.log("📧 Email confirmation required, showing success screen");
       setIsSuccess(true);
     } catch (error) {
       console.error("Sign up error:", error);
@@ -173,6 +235,35 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
     );
   }
   
+  // Redirecting screen
+  if (isRedirecting) {
+    return (
+      <div className="flex h-screen w-full">
+        <div className="flex w-full mx-auto bg-white overflow-hidden">
+          <div className="w-full flex items-center justify-center p-8">
+            <div className="w-full max-w-md text-center">
+              {/* Logo */}
+              <div className="flex justify-center mb-6">
+                <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
+              </div>
+              
+              {/* Redirecting message */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-zinc-700 mb-4">Welcome to Spaak!</h1>
+                <p className="text-gray-600 mb-6">
+                  Account created successfully. Redirecting you to your dashboard...
+                </p>
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Success screen
   if (isSuccess) {
     return (
