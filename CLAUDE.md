@@ -11,11 +11,16 @@ Spaak is an AI-powered secretary application that handles missed calls for busin
 - **Framework**: Next.js 14 with App Router
 - **Database**: Supabase (PostgreSQL with real-time subscriptions)
 - **Authentication**: Supabase Auth with SSR cookie-based sessions
+- **State Management**: Zustand with persistence
 - **Styling**: Tailwind CSS with shadcn/ui components
+- **UI Components**: Radix UI primitives with custom styling
 - **Voice AI**: Vapi integration via webhooks
 - **Communication**: Twilio for SMS, Resend for email
+- **Payments**: Stripe integration for subscriptions
+- **Maps & Places**: Google Maps Places API (new autocomplete)
 - **Deployment**: Optimized for Vercel
 - **Language**: TypeScript throughout
+- **Package Manager**: pnpm (evidenced by pnpm-lock.yaml)
 
 ## Development Commands
 
@@ -32,19 +37,124 @@ npm start
 
 Note: This project does not currently have linting, testing, or type-checking scripts configured.
 
+## Required Environment Variables
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+
+# Additional integrations (Stripe, Twilio, etc.)
+# Add other environment variables as needed
+```
+
 ## Architecture
 
-### App Structure
-- **App Router**: Uses Next.js 14 App Router with nested layouts
-- **Authentication**: Cookie-based auth flows in `app/(auth-pages)/`
+### App Structure (Next.js 14 App Router)
+- **App Router**: Uses Next.js 14 App Router with file-based routing
+- **Authentication Pages**: Protected auth flows in `app/(auth-pages)/`
+  - Sign in, sign up, forgot password
+- **Full-Screen Pages**: Standalone pages outside dashboard layout
+  - `app/subscribe/` - Subscription welcome page (full-screen)
+  - `app/onboarding/` - Multi-step onboarding flow (full-screen)
 - **Dashboard**: Main application interface at `app/dashboard/`
+  - Includes sidebar layout for authenticated users
+  - Account, billing, and main dashboard pages
 - **API Routes**: Backend endpoints in `app/api/`
+- **Server Actions**: In `app/actions/` for server-side operations
+
+### Component Organization Convention
+
+Follow this structure for organizing components:
+
+```
+components/
+├── ui/                     # Base UI components (shadcn/ui)
+├── onboarding/            # Onboarding-specific components
+│   ├── stepper.tsx        # Main stepper component
+│   └── steps/             # Individual step components
+├── auth/                  # Authentication components
+├── dashboard/             # Dashboard-specific components
+├── layouts/               # Layout components
+└── [feature]/             # Feature-specific component groups
+```
+
+### Page Organization Convention
+
+```
+app/
+├── (auth-pages)/          # Auth-only pages (grouped route)
+├── subscribe/             # Full-screen subscription page
+├── onboarding/            # Full-screen onboarding flow
+├── dashboard/             # Dashboard layout with sidebar
+│   ├── layout.tsx         # Dashboard-specific layout
+│   ├── page.tsx           # Main dashboard
+│   ├── account/           # Account management
+│   └── billing/           # Billing and subscriptions
+├── api/                   # API route handlers
+└── actions/               # Server actions
+```
 
 ### Key Components
 - **Supabase Integration**: Client/server utilities in `utils/supabase/`
-- **UI Components**: shadcn/ui components in `components/ui/`
+- **UI Components**: shadcn/ui base components in `components/ui/`
+- **State Management**: Zustand stores in `stores/`
 - **Middleware**: Session management via `middleware.ts`
-- **Webhooks**: Vapi integration in `supabase/functions/`
+- **Edge Functions**: Vapi integration in `supabase/functions/`
+
+### User Flow & Authentication Checks
+
+#### Complete User Journey
+1. **New User Registration**
+   - Sign up at `/sign-up`
+   - Email verification (if configured)
+   - Redirect to subscription flow
+
+2. **Subscription Flow** 
+   - User directed to `/subscribe` (full-screen)
+   - Stripe payment processing
+   - `onboarding_status` remains `pending`
+   - Redirect to onboarding after payment
+
+3. **Onboarding Flow**
+   - User directed to `/onboarding` (full-screen, multi-step)
+   - Step 1: Business name and owner name
+   - Step 2: Services offered (multi-select)
+   - Step 3: Specialty (multi-select)
+   - Step 4: Service area (Google Places autocomplete)
+   - Updates `onboarding_status` to `completed`
+   - Redirect to dashboard
+
+4. **Dashboard Access**
+   - Only accessible after completing onboarding
+   - Full sidebar layout with main application features
+
+#### Authentication & Onboarding Checks
+
+**Dashboard Layout Logic** (`app/dashboard/layout.tsx`):
+```typescript
+// Check sequence on every dashboard access:
+1. Auth loading → Show "Loading dashboard..."
+2. Onboarding loading → Show "Loading dashboard..."
+3. needsOnboarding (no subscription) → Redirect to /subscribe
+4. needsPostSubscriptionOnboarding → Redirect to /onboarding
+5. All checks pass → Show dashboard with sidebar
+```
+
+**Auth Store States**:
+- `needsOnboarding`: User has no active subscription
+- `needsPostSubscriptionOnboarding`: User has subscription but onboarding incomplete
+- `isAuthenticated`: User session is valid
+- `onboardingLoading`: Onboarding status check in progress
+
+**Page Protection**:
+- `/subscribe` and `/onboarding` require authentication
+- Unauthenticated users redirected to `/sign-in`
+- Dashboard access blocked until onboarding complete
 
 ### Database Schema
 
@@ -170,16 +280,53 @@ The application uses a multi-tenant architecture with service providers managing
 
 Note: Customer inquiries and messages are not directly linked to service providers - they're matched via assistant_id and call routing logic.
 
+### Google Places API Integration
+
+**Location**: `app/actions/google-places.ts`
+
+The application uses the **new Google Places API (New)** (not legacy) for service area selection during onboarding.
+
+**Features**:
+- Server-side API calls for security
+- Debounced requests (300ms) to minimize API usage
+- Restricted to localities and administrative areas
+- Biased to Australia (`regionCode: "AU"`)
+- Session tokens for billing optimization
+- Field masks for optimized responses
+
+**Implementation**:
+```typescript
+// Server action with debounced client-side calls
+const result = await getPlaceAutocomplete(searchTerm);
+
+// API Configuration (New Places API)
+- Endpoint: https://places.googleapis.com/v1/places:autocomplete
+- Method: POST with JSON body
+- Authentication: X-Goog-Api-Key header
+- Field Mask: Specific fields for performance
+- Types: locality, administrative_area_level_1, administrative_area_level_2
+- Region: AU (Australia biased)
+- Session tokens: Generated per search session
+```
+
+**Usage in Components**:
+- `components/onboarding/steps/service-area-step.tsx`
+- Debounced input with 300ms delay
+- Dropdown with autocomplete suggestions
+- Fallback to manual entry if needed
+
 ### Environment Configuration
 Required environment variables:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (for Edge Functions)
+- `GOOGLE_MAPS_API_KEY` (for Places Autocomplete)
 
 ### Supabase Edge Functions
 Located in `supabase/functions/`:
 - **vapi_call_webhook**: Processes voice call data and saves to database
 - **vapi_call_poller**: Handles ongoing call management
+- **stripe-create-session**: Handles Stripe subscription creation
 
 ### Styling System
 - Uses Tailwind CSS with CSS variables for theming
@@ -189,7 +336,38 @@ Located in `supabase/functions/`:
 
 ## Development Notes
 
-- The project uses pnpm as the package manager (evidenced by `pnpm-lock.yaml`)
-- Middleware handles authentication across all routes except static assets
-- The app is configured for deployment with Vercel's Supabase integration
-- TypeScript strict mode is enabled with path aliases (`@/*`)
+### General
+- **Package Manager**: pnpm (evidenced by `pnpm-lock.yaml`)
+- **TypeScript**: Strict mode enabled with path aliases (`@/*`)
+- **Deployment**: Configured for Vercel with Supabase integration
+- **Routing**: Next.js 14 App Router with file-based routing
+- **State Persistence**: Zustand with localStorage persistence
+
+### Authentication & Middleware
+- **Middleware**: Handles authentication across all routes except static assets (`middleware.ts`)
+- **Protected Routes**: Dashboard routes require authentication
+- **Session Management**: SSR-compatible cookie-based sessions
+- **Auth Provider**: Client-side auth state management with Zustand
+
+### API Integration Patterns
+- **Server Actions**: Used for secure server-side operations (Google Places, Stripe)
+- **Edge Functions**: Supabase functions for webhooks and external integrations
+- **Client-Side**: React Query for client-side data fetching (where applicable)
+
+### Component Patterns
+- **Compound Components**: Complex UI elements broken into smaller, reusable parts
+- **Server Components**: Default for static content and initial data loading
+- **Client Components**: For interactive elements and state management
+- **Loading States**: Comprehensive loading and error states throughout
+
+### Code Organization
+- **Feature-based**: Components organized by feature (onboarding, auth, dashboard)
+- **Shared UI**: Base components in `components/ui/` following shadcn/ui patterns
+- **Actions**: Server actions grouped in `app/actions/` by functionality
+- **Types**: TypeScript interfaces defined close to usage or in shared locations
+
+### Performance Optimizations
+- **Debounced API Calls**: Google Places autocomplete (300ms debounce)
+- **Lazy Loading**: Components loaded on demand where appropriate
+- **Image Optimization**: Next.js automatic image optimization
+- **Bundle Optimization**: Automatic code splitting with App Router
