@@ -85,6 +85,7 @@ export async function getSubscriptionData(userId: string): Promise<{
 export async function getOnboardingData(userId: string): Promise<{
   onboardingData: OnboardingData | null;
   needsOnboarding: boolean;
+  needsPostSubscriptionOnboarding: boolean;
   error?: string;
 }> {
   try {
@@ -100,24 +101,32 @@ export async function getOnboardingData(userId: string): Promise<{
       return {
         onboardingData: null,
         needsOnboarding: false,
+        needsPostSubscriptionOnboarding: false,
         error: "Service provider not found",
       };
     }
 
     // Get subscription status to determine if onboarding is needed
     const subscriptionResult = await getSubscriptionData(userId);
+    
     const needsOnboarding =
       serviceProvider.onboarding_status === "pending" && !subscriptionResult.hasActiveSubscription;
+    
+    // Check if user has active subscription but incomplete onboarding
+    const needsPostSubscriptionOnboarding = 
+      serviceProvider.onboarding_status === "pending" && subscriptionResult.hasActiveSubscription;
 
     return {
       onboardingData: serviceProvider,
       needsOnboarding,
+      needsPostSubscriptionOnboarding,
     };
   } catch (error) {
     console.error("Error fetching onboarding data:", error);
     return {
       onboardingData: null,
       needsOnboarding: false,
+      needsPostSubscriptionOnboarding: false,
       error: "Failed to fetch onboarding data",
     };
   }

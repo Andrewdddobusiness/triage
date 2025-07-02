@@ -29,11 +29,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           };
           setUser(userData);
           
-          // Only check onboarding for SIGNED_IN events, not INITIAL_SESSION
-          if (event === 'SIGNED_IN') {
-            console.log('🔍 Checking onboarding for user:', session.user.id);
-            checkOnboarding(session.user.id);
-          }
+          // Check onboarding for both SIGNED_IN and INITIAL_SESSION events
+          console.log('🔍 Checking onboarding for user:', session.user.id);
+          checkOnboarding(session.user.id);
         } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
           // Clear all auth state on sign out
           console.log('🚪 User signed out');

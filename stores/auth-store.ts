@@ -15,11 +15,13 @@ interface AuthState {
   isLoading: boolean;
   isHydrated: boolean;
   needsOnboarding: boolean;
+  needsPostSubscriptionOnboarding: boolean;
   onboardingLoading: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setHydrated: (hydrated: boolean) => void;
   setOnboarding: (needsOnboarding: boolean) => void;
+  setPostSubscriptionOnboarding: (needsPostSubscriptionOnboarding: boolean) => void;
   login: (user: User) => void;
   logout: () => void;
   checkAuth: () => Promise<void>;
@@ -34,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       isHydrated: false,
       needsOnboarding: false,
+      needsPostSubscriptionOnboarding: false,
       onboardingLoading: false,
 
       setUser: (user) => set({ 
@@ -47,6 +50,8 @@ export const useAuthStore = create<AuthState>()(
 
       setOnboarding: (needsOnboarding) => set({ needsOnboarding }),
 
+      setPostSubscriptionOnboarding: (needsPostSubscriptionOnboarding) => set({ needsPostSubscriptionOnboarding }),
+
       login: (user) => set({ 
         user, 
         isAuthenticated: true,
@@ -58,7 +63,8 @@ export const useAuthStore = create<AuthState>()(
           user: null, 
           isAuthenticated: false,
           isLoading: false,
-          needsOnboarding: false 
+          needsOnboarding: false,
+          needsPostSubscriptionOnboarding: false
         });
       },
 
@@ -104,14 +110,25 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ onboardingLoading: true });
           const result = await getOnboardingData(userId);
+          
+          console.log('🔍 Auth Store - Onboarding check result:', {
+            userId,
+            needsOnboarding: result.needsOnboarding,
+            needsPostSubscriptionOnboarding: result.needsPostSubscriptionOnboarding,
+            onboardingStatus: result.onboardingData?.onboarding_status,
+            error: result.error
+          });
+          
           set({ 
             needsOnboarding: result.needsOnboarding,
+            needsPostSubscriptionOnboarding: result.needsPostSubscriptionOnboarding,
             onboardingLoading: false 
           });
         } catch (error) {
           console.error('Onboarding check error:', error);
           set({ 
             needsOnboarding: false,
+            needsPostSubscriptionOnboarding: false,
             onboardingLoading: false 
           });
         }

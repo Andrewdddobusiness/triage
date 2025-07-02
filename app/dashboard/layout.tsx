@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuthStore } from "@/stores/auth-store";
-import { WelcomeScreen } from "@/components/onboarding/welcome-screen";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -27,6 +26,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     isAuthenticated,
     isLoading: authLoading,
     needsOnboarding,
+    needsPostSubscriptionOnboarding,
     onboardingLoading,
     checkOnboarding,
   } = useAuthStore();
@@ -47,13 +47,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleOnboardingComplete = () => {
-    if (user?.id) {
-      checkOnboarding(user.id);
-    }
-  };
+  // Handle redirections with useEffect to avoid render-time navigation
+  useEffect(() => {
+    if (!authCheckComplete || !isMounted) return;
 
-  // Show loading while component is mounting or auth is loading
+    if (needsOnboarding && user?.id) {
+      if (window.location.pathname !== "/subscribe") {
+        window.location.href = "/subscribe";
+      }
+    } else if (needsPostSubscriptionOnboarding && user?.id) {
+      if (window.location.pathname !== "/onboarding") {
+        window.location.href = "/onboarding";
+      }
+    }
+  }, [needsOnboarding, needsPostSubscriptionOnboarding, user?.id, authCheckComplete, isMounted]);
+
+
+  // Show loading while component is mounting, auth is loading, or onboarding checks are in progress
   const isLoading = !isMounted || authLoading || onboardingLoading || !authCheckComplete;
 
   if (isLoading) {
@@ -67,10 +77,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  // Show onboarding screen for first-time users without subscription
-  if (needsOnboarding && user?.id) {
-    return <WelcomeScreen userId={user.id} onComplete={handleOnboardingComplete} />;
+  // Show loading while redirecting (don't show dashboard until onboarding checks are complete)
+  if (needsOnboarding || needsPostSubscriptionOnboarding) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p>{needsOnboarding ? "Redirecting to subscription..." : "Redirecting to onboarding..."}</p>
+        </div>
+      </div>
+    );
   }
+
 
   // Main dashboard layout with sidebar
   return (
