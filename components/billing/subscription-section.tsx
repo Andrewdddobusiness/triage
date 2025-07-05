@@ -5,12 +5,7 @@ import { BillingActions } from "@/app/actions/stripe/billing";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  CheckCircleIcon, 
-  AlertCircleIcon, 
-  CreditCardIcon,
-  Loader2
-} from "lucide-react";
+import { CheckCircleIcon, AlertCircleIcon, CreditCardIcon, Loader2 } from "lucide-react";
 import { usePaymentProcessing } from "./payment-notification";
 
 interface SubscriptionData {
@@ -39,13 +34,15 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
   const [currentData, setCurrentData] = useState(subscriptionData);
 
   // Helper function to check if subscription is cancelled but still active
-  const isSubscriptionCancelled = (subscription?: SubscriptionData['subscription']) => {
-    return subscription?.cancel_at_period_end === true && subscription?.status === 'active';
+  const isSubscriptionCancelled = (subscription?: SubscriptionData["subscription"]) => {
+    return subscription?.cancel_at_period_end === true && subscription?.status === "active";
   };
 
   const getStatusBadge = (status: string, isCancelled: boolean = false) => {
     if (isCancelled) {
-      return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">Cancelled</Badge>;
+      return (
+        <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">Cancelled</Badge>
+      );
     }
     switch (status) {
       case "active":
@@ -76,8 +73,10 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
     try {
       const { createClient } = await import("@/utils/supabase/client");
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return null;
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/stripe-check-subscription`, {
@@ -106,33 +105,33 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
     const poll = async () => {
       const data = await checkSubscriptionStatus();
       attempts++;
-      
+
       if (data?.hasActiveSubscription) {
         // Found active subscription, update the data and stop polling
         setCurrentData(data);
         setIsPolling(false);
-        
+
         // Refresh page after a short delay to clear the URL
         setTimeout(() => {
           window.location.reload();
         }, 2000);
         return;
       }
-      
+
       if (attempts < maxAttempts) {
         // Continue polling
         setTimeout(poll, 2500);
       } else {
         // Stop polling after max attempts
         setIsPolling(false);
-        
+
         // Refresh page to clear URL and show latest state
         setTimeout(() => {
           window.location.reload();
         }, 3000);
       }
     };
-    
+
     // Start polling after a short delay
     setTimeout(poll, 2000);
   }, [isPaymentProcessing, isPolling, checkSubscriptionStatus]);
@@ -148,9 +147,7 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                 <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
                 <div>
                   <h3 className="text-lg font-semibold">Activating Your Subscription...</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Setting up your account and processing your payment
-                  </p>
+                  <p className="text-sm text-muted-foreground">Setting up your account and processing your payment</p>
                 </div>
               </div>
               <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Processing</Badge>
@@ -189,9 +186,9 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                     </div>
                     {currentData.subscription && getStatusBadge(currentData.subscription.status, true)}
                   </div>
-                  <BillingActions 
-                    hasActiveSubscription={false} 
-                    hasSubscriptionHistory={true} 
+                  <BillingActions
+                    hasActiveSubscription={false}
+                    hasSubscriptionHistory={true}
                     userId={userId}
                     subscription={currentData.subscription}
                   />
@@ -214,9 +211,9 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                     </div>
                     {currentData.subscription && getStatusBadge(currentData.subscription.status, false)}
                   </div>
-                  <BillingActions 
-                    hasActiveSubscription={true} 
-                    hasSubscriptionHistory={true} 
+                  <BillingActions
+                    hasActiveSubscription={true}
+                    hasSubscriptionHistory={true}
                     userId={userId}
                     subscription={currentData.subscription}
                   />
@@ -231,9 +228,9 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                 <p className="text-zinc-600 mb-6">
                   Your subscription has expired. Start a new subscription to continue using all features.
                 </p>
-                <BillingActions 
-                  hasActiveSubscription={false} 
-                  hasSubscriptionHistory={true} 
+                <BillingActions
+                  hasActiveSubscription={false}
+                  hasSubscriptionHistory={true}
                   userId={userId}
                   subscription={currentData.subscription}
                 />
@@ -245,9 +242,9 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                 <CreditCardIcon className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Subscription</h3>
                 <p className="text-zinc-600 mb-6">Start your subscription to access all features.</p>
-                <BillingActions 
-                  hasActiveSubscription={false} 
-                  hasSubscriptionHistory={false} 
+                <BillingActions
+                  hasActiveSubscription={false}
+                  hasSubscriptionHistory={false}
                   userId={userId}
                   subscription={currentData.subscription}
                 />

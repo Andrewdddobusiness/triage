@@ -17,8 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, AlertCircleIcon, DownloadIcon, SearchIcon, FilterIcon } from "lucide-react";
-import { PaymentNotification } from "./payment-notification";
-import { SubscriptionSection } from "./subscription-section";
+import { PaymentNotification } from "../../../components/billing/payment-notification";
+import { SubscriptionSection } from "../../../components/billing/subscription-section";
 
 interface SubscriptionData {
   hasActiveSubscription: boolean;
@@ -109,25 +109,7 @@ export default async function BillingPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Dashboard</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Billing</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <PaymentNotification />
           <div className="space-y-2">
