@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUpCircleIcon, CameraIcon, FileCodeIcon, FileTextIcon, LayoutDashboardIcon } from "lucide-react";
+import { ArrowUpCircleIcon, Bot, CameraIcon, FileCodeIcon, FileTextIcon, LayoutDashboardIcon } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import { useAuthStore } from "@/stores/auth-store";
@@ -31,6 +31,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboardIcon,
+    },
+    {
+      title: "AI Assistant",
+      url: "/dashboard/assistant",
+      icon: Bot,
     },
   ],
 };

@@ -133,6 +133,13 @@ app/
    - Only accessible after completing onboarding
    - Full sidebar layout with main application features
 
+5. **First-Time Setup Flow** (Post-Onboarding)
+   - User enters dashboard for the first time
+   - Automatic assistant setup modal appears (if `has_seen_assistant_setup` = false)
+   - Modal guides through AI assistant configuration and phone number assignment
+   - Database flags updated to prevent showing modal again
+   - User can skip steps and return later via assistant settings page
+
 #### Authentication & Onboarding Checks
 
 **Dashboard Layout Logic** (`app/dashboard/layout.tsx`):
@@ -178,6 +185,8 @@ The application uses a multi-tenant architecture with service providers managing
 - `rating` (DECIMAL(3,2))
 - `availability_status` (TEXT, DEFAULT 'available', CHECK: 'available' | 'busy' | 'unavailable')
 - `subscription_status` (TEXT, DEFAULT 'none', CHECK: 'none' | 'active' | 'inactive' | 'trial')
+- `has_seen_assistant_setup` (BOOLEAN, DEFAULT FALSE, tracks first-time assistant setup modal)
+- `has_seen_phone_number_setup` (BOOLEAN, DEFAULT FALSE, tracks first-time phone number setup modal)
 - `created_at` (TIMESTAMPTZ, DEFAULT NOW())
 - `updated_at` (TIMESTAMPTZ, DEFAULT NOW(), auto-updated)
 - CONSTRAINT: completed onboarding requires business_name AND owner_name

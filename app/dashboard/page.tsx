@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { DataTable } from "@/components/data-table/table";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 import { toast } from "sonner";
+import { SetupAlert } from "@/components/setup-alert";
 
 interface Inquiry {
   id: string;
@@ -76,6 +77,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Setup Alert */}
+      <SetupAlert />
+
       {/* Analytics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
