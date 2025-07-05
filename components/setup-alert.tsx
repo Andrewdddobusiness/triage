@@ -35,7 +35,7 @@ export function SetupAlert({ className }: SetupAlertProps) {
   };
 
   const handleSetupAssistant = () => {
-    setModalStep("assistant-setup");
+    setModalStep("welcome");
     setShowModal(true);
   };
 
