@@ -82,7 +82,6 @@ export function SetupAlert({ className }: SetupAlertProps) {
         {/* Second Priority: Phone Number Alert (only if assistant is configured) */}
         {setupStatus.hasAssistant && !setupStatus.hasPhoneNumber && (
           <Alert className="border-orange-200 bg-orange-50">
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
             <AlertDescription className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-orange-600" />

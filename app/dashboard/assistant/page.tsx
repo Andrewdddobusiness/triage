@@ -191,8 +191,8 @@ export default function AssistantSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Assistant Settings</h1>
-        <p className="text-gray-600">Configure and manage your AI assistant</p>
+        <h1 className="text-2xl font-bold text-zinc-900 mb-2">Assistant Settings</h1>
+        <p className="text-zinc-600">Configure and manage your AI assistant</p>
       </div>
 
       {/* Setup Alert */}
@@ -201,7 +201,7 @@ export default function AssistantSettingsPage() {
       {/* AI Assistant Status */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Bot className="h-5 w-5" />
             AI Assistant Status
           </CardTitle>
@@ -210,11 +210,11 @@ export default function AssistantSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-medium">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
+                <span className=" text-sm">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
                 {assistantEnabled ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-gray-400" />
+                  <XCircle className="h-4 w-4 text-zinc-400" />
                 )}
               </div>
               {!canActivateAssistant && (
@@ -239,23 +239,20 @@ export default function AssistantSettingsPage() {
       {/* Current Assistant */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Settings className="h-5 w-5" />
             Current Assistant
-            <Button variant="outline" size="sm" className="ml-auto" onClick={() => setShowSetupModal(true)}>
-              <Settings className="h-4 w-4" />
-            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {serviceProviderAssistant?.assistant_preset ? (
             <div className="space-y-2">
               <h3 className="font-medium">{serviceProviderAssistant.assistant_preset.name}</h3>
-              <p className="text-sm text-gray-600">{serviceProviderAssistant.assistant_preset.description}</p>
+              <p className="text-sm text-zinc-600">{serviceProviderAssistant.assistant_preset.description}</p>
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-500">No assistant configured</p>
+              <p className="text-zinc-500">No assistant configured</p>
               <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
                 Setup Assistant
               </Button>
@@ -267,33 +264,24 @@ export default function AssistantSettingsPage() {
       {/* Business Phone Number */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Phone className="h-5 w-5" />
             Business Phone Number
-            <Button variant="outline" size="sm" className="ml-auto">
-              <Phone className="h-4 w-4" />
-            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {assignedPhoneNumber ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="font-medium">{assignedPhoneNumber.phone_number}</span>
+                <span className="text-sm">{assignedPhoneNumber.phone_number}</span>
                 <Badge variant="secondary" className="bg-green-100 text-green-800">
                   Active
                 </Badge>
               </div>
-              {assignedPhoneNumber.friendly_name && (
-                <p className="text-sm text-gray-600">{assignedPhoneNumber.friendly_name}</p>
-              )}
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-500">No number assigned</p>
-              <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
-                Get Phone Number
-              </Button>
+              <p className="text-zinc-500 text-sm">No number assigned</p>
             </div>
           )}
         </CardContent>
