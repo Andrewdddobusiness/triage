@@ -169,7 +169,6 @@ export function AssistantSetupModal({
 
       if (isFirstTimeSetup) {
         setCurrentStep("assistant-success");
-        await updateSetupFlags({ has_seen_assistant_setup: true });
       } else {
         onOpenChange(false);
       }
@@ -192,9 +191,6 @@ export function AssistantSetupModal({
         setAssignedPhoneNumber(result.phoneNumber);
         setCurrentStep("phone-success");
 
-        if (isFirstTimeSetup) {
-          await updateSetupFlags({ has_seen_phone_number_setup: true });
-        }
 
         onPhoneNumberAssigned?.(result.phoneNumber);
         toast.success(result.message);

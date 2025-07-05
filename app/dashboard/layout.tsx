@@ -15,7 +15,7 @@ import {
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AssistantSetupModal } from "@/components/assistant-setup-modal";
-import { getSetupFlags } from "@/app/actions/update-setup-flags";
+import { getSetupFlags, updateSetupFlags } from "@/app/actions/update-setup-flags";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -74,37 +74,55 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const checkFirstTimeSetup = async () => {
       try {
-        console.log("🏠 Layout: Checking first-time setup...");
         const result = await getSetupFlags();
-        console.log("🏠 Layout: Setup flags result:", result);
-        
+
         if (result.success && result.flags) {
-          const { has_seen_assistant_setup, has_seen_phone_number_setup } = result.flags;
-          
+          const { has_seen_assistant_setup } = result.flags;
+
           // Show modal if user hasn't seen assistant setup
           const needsSetup = !has_seen_assistant_setup;
-          
-          console.log("🏠 Layout: Needs setup:", needsSetup);
-          
+
           if (needsSetup) {
             // Add a delay for smooth page load
-            setTimeout(() => {
-              console.log("🏠 Layout: Showing first-time setup modal");
+            setTimeout(async () => {
               setShowSetupModal(true);
+
+              // Mark as seen immediately when modal is shown
+              try {
+                await updateSetupFlags({ has_seen_assistant_setup: true });
+              } catch (error) {
+                console.error("🏠 Layout: Failed to update setup flag:", error);
+              }
             }, 1500); // 1.5s delay for page to fully load
           }
         } else {
           console.error("🏠 Layout: Failed to get setup flags, assuming first-time user");
           // On error, assume first-time user
-          setTimeout(() => {
+          setTimeout(async () => {
             setShowSetupModal(true);
+
+            // Mark as seen when modal is shown (error case)
+            try {
+              await updateSetupFlags({ has_seen_assistant_setup: true });
+              console.log("🏠 Layout: Marked has_seen_assistant_setup as true (error case)");
+            } catch (error) {
+              console.error("🏠 Layout: Failed to update setup flag (error case):", error);
+            }
           }, 1500);
         }
       } catch (error) {
         console.error("🏠 Layout: Error checking first-time setup:", error);
         // On error, assume first-time user
-        setTimeout(() => {
+        setTimeout(async () => {
           setShowSetupModal(true);
+
+          // Mark as seen when modal is shown (catch error case)
+          try {
+            await updateSetupFlags({ has_seen_assistant_setup: true });
+            console.log("🏠 Layout: Marked has_seen_assistant_setup as true (catch error case)");
+          } catch (updateError) {
+            console.error("🏠 Layout: Failed to update setup flag (catch error case):", updateError);
+          }
         }, 1500);
       } finally {
         setSetupCheckComplete(true);
@@ -113,7 +131,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     checkFirstTimeSetup();
   }, [authCheckComplete, user?.id, needsOnboarding, needsPostSubscriptionOnboarding, setupCheckComplete]);
-
 
   // Show loading while component is mounting, auth is loading, or onboarding checks are in progress
   const isLoading = !isMounted || authLoading || onboardingLoading || !authCheckComplete;
@@ -141,7 +158,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-
   // Main dashboard layout with sidebar
   return (
     <SidebarProvider>
@@ -166,7 +182,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>
-      
+
       {/* First-time setup modal */}
       <AssistantSetupModal
         open={showSetupModal}

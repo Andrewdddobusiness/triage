@@ -4,7 +4,6 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function updateSetupFlags(flags: {
   has_seen_assistant_setup?: boolean;
-  has_seen_phone_number_setup?: boolean;
 }) {
   try {
     const supabase = await createClient();
@@ -66,8 +65,7 @@ export async function getSetupFlags() {
 
     // Handle case where columns might not exist yet
     const flags = {
-      has_seen_assistant_setup: serviceProvider?.has_seen_assistant_setup || false,
-      has_seen_phone_number_setup: serviceProvider?.has_seen_phone_number_setup || false
+      has_seen_assistant_setup: serviceProvider?.has_seen_assistant_setup || false
     };
 
     console.log("🏪 Service provider data:", serviceProvider);
@@ -84,8 +82,7 @@ export async function getSetupFlags() {
     return { 
       success: true, 
       flags: {
-        has_seen_assistant_setup: false,
-        has_seen_phone_number_setup: false
+        has_seen_assistant_setup: false
       }
     };
   }
