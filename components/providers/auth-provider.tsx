@@ -19,10 +19,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, session?.user?.email || 'no user');
         
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          console.log('✅ Setting user in auth store:', session.user.email);
           const userData = {
             id: session.user.id,
             email: session.user.email,
@@ -30,11 +28,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(userData);
           
           // Check onboarding for both SIGNED_IN and INITIAL_SESSION events
-          console.log('🔍 Checking onboarding for user:', session.user.id);
           checkOnboarding(session.user.id);
         } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
           // Clear all auth state on sign out
-          console.log('🚪 User signed out');
           logout();
         }
         

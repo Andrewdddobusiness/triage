@@ -135,7 +135,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
     try {
       const supabase = createClient();
-      
+
       // Sign up the user with Supabase client
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -166,32 +166,26 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
       // Check if user was immediately signed in (email confirmation disabled)
       if (data.session) {
-        console.log("✅ User signed in immediately with session:", data.session.user.id);
-        console.log("📍 Current location:", window.location.href);
-        console.log("🔄 Waiting for auth state update...");
-        
         // Show redirecting state
         setIsRedirecting(true);
-        
+
         // Wait for auth state to be updated, then redirect
         const waitForAuth = () => {
           const { isAuthenticated } = useAuthStore.getState();
           if (isAuthenticated) {
-            console.log("🚀 Auth state updated, redirecting to dashboard");
-            router.push('/dashboard');
+            router.push("/dashboard");
           } else {
-            console.log("⏳ Still waiting for auth state...");
             setTimeout(waitForAuth, 100);
           }
         };
-        
+
         // Start checking after a short delay
         setTimeout(waitForAuth, 200);
         return;
       }
 
       // Email confirmation required
-      console.log("📧 Email confirmation required, showing success screen");
+
       setIsSuccess(true);
     } catch (error) {
       console.error("Sign up error:", error);
@@ -217,7 +211,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   React.useEffect(() => {
     props.searchParams.then(setSearchParams);
   }, [props.searchParams]);
-  
+
   // Check for success parameter in URL
   React.useEffect(() => {
     props.searchParams.then((params) => {
@@ -226,7 +220,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
       }
     });
   }, [props.searchParams]);
-  
+
   if (searchParams && "message" in searchParams) {
     return (
       <div className="w-full flex-1 flex items-center h-screen sm:max-w-md justify-center gap-2 p-4">
@@ -234,7 +228,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
       </div>
     );
   }
-  
+
   // Redirecting screen
   if (isRedirecting) {
     return (
@@ -246,13 +240,11 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               <div className="flex justify-center mb-6">
                 <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
               </div>
-              
+
               {/* Redirecting message */}
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-zinc-700 mb-4">Welcome to Spaak!</h1>
-                <p className="text-gray-600 mb-6">
-                  Account created successfully. Redirecting you to your dashboard...
-                </p>
+                <p className="text-gray-600 mb-6">Account created successfully. Redirecting you to your dashboard...</p>
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                 </div>
@@ -276,13 +268,11 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               <div className="flex justify-center mb-6">
                 <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
               </div>
-              
+
               {/* Success message */}
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-zinc-700 mb-4">Check Your Email</h1>
-                <p className="text-gray-600 mb-2">
-                  We've sent a verification link to:
-                </p>
+                <p className="text-gray-600 mb-2">We've sent a verification link to:</p>
                 <p className="text-orange-600 font-medium mb-4">{email}</p>
                 <p className="text-gray-600 text-sm">
                   Please check your email and click the verification link to activate your account.
@@ -299,10 +289,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               {/* Additional help text */}
               <p className="text-sm text-gray-500 mt-4">
                 Didn't receive the email? Check your spam folder or{" "}
-                <button 
-                  onClick={() => setIsSuccess(false)}
-                  className="text-orange-600 hover:text-orange-500 underline"
-                >
+                <button onClick={() => setIsSuccess(false)} className="text-orange-600 hover:text-orange-500 underline">
                   try again
                 </button>
               </p>

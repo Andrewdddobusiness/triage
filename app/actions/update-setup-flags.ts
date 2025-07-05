@@ -68,8 +68,6 @@ export async function getSetupFlags() {
       has_seen_assistant_setup: serviceProvider?.has_seen_assistant_setup || false
     };
 
-    console.log("🏪 Service provider data:", serviceProvider);
-    console.log("🏁 Parsed flags:", flags);
 
     return { 
       success: true, 

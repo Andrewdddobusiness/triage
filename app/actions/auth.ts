@@ -84,7 +84,6 @@ export const signInAction = async (formData: FormData) => {
 export const signInWithGoogleAction = async () => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
-  console.log("origin", origin);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

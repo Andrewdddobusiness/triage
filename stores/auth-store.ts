@@ -111,13 +111,6 @@ export const useAuthStore = create<AuthState>()(
           set({ onboardingLoading: true });
           const result = await getOnboardingData(userId);
           
-          console.log('🔍 Auth Store - Onboarding check result:', {
-            userId,
-            needsOnboarding: result.needsOnboarding,
-            needsPostSubscriptionOnboarding: result.needsPostSubscriptionOnboarding,
-            onboardingStatus: result.onboardingData?.onboarding_status,
-            error: result.error
-          });
           
           set({ 
             needsOnboarding: result.needsOnboarding,

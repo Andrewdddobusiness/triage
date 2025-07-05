@@ -49,7 +49,6 @@ export function BillingActions({
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Reactivation check result:", result);
         return result;
       } else {
         const errorData = await response.json();
@@ -130,7 +129,6 @@ export function BillingActions({
 
         // If portal fails and fallback is enabled, try checkout instead
         if (fallbackToCheckout) {
-          console.log("Portal failed, falling back to checkout flow");
           await handleStartSubscription();
         }
       }
@@ -139,7 +137,6 @@ export function BillingActions({
 
       // If portal fails and fallback is enabled, try checkout instead
       if (fallbackToCheckout) {
-        console.log("Portal failed with exception, falling back to checkout flow");
         await handleStartSubscription();
       }
     }

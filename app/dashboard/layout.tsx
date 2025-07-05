@@ -104,8 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             // Mark as seen when modal is shown (error case)
             try {
               await updateSetupFlags({ has_seen_assistant_setup: true });
-              console.log("🏠 Layout: Marked has_seen_assistant_setup as true (error case)");
-            } catch (error) {
+                } catch (error) {
               console.error("🏠 Layout: Failed to update setup flag (error case):", error);
             }
           }, 1500);
@@ -119,7 +118,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           // Mark as seen when modal is shown (catch error case)
           try {
             await updateSetupFlags({ has_seen_assistant_setup: true });
-            console.log("🏠 Layout: Marked has_seen_assistant_setup as true (catch error case)");
           } catch (updateError) {
             console.error("🏠 Layout: Failed to update setup flag (catch error case):", updateError);
           }
@@ -189,11 +187,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         onOpenChange={setShowSetupModal}
         isFirstTimeSetup={true}
         onAssistantSelected={() => {
-          console.log("🏠 Layout: Assistant configured");
           // Modal will close automatically
         }}
         onPhoneNumberAssigned={(phoneNumber) => {
-          console.log("🏠 Layout: Phone number assigned:", phoneNumber);
           // Modal will close automatically
         }}
       />

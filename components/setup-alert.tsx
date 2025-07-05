@@ -53,7 +53,6 @@ export function SetupAlert({ className }: SetupAlertProps) {
   if (loading || !setupStatus || setupStatus.isComplete) {
     return null;
   }
-  console.log(setupStatus);
 
   return (
     <>

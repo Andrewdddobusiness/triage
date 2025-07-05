@@ -94,7 +94,6 @@ export function WelcomeScreen({ userId, onComplete }: WelcomeScreenProps) {
             variant="outline" 
             className="border-orange-200 text-orange-600 hover:bg-orange-50"
             onClick={() => {
-              console.log("Navigating to home page");
               router.push("/");
             }}
           >
