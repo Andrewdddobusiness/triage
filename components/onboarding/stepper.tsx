@@ -20,6 +20,7 @@ export interface StepperProps {
   canGoPrevious?: boolean;
   isLastStep?: boolean;
   isLoading?: boolean;
+  isCompleting?: boolean;
 }
 
 export function Stepper({
@@ -33,6 +34,7 @@ export function Stepper({
   canGoPrevious = true,
   isLastStep = false,
   isLoading = false,
+  isCompleting = false,
 }: StepperProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
@@ -105,10 +107,10 @@ export function Stepper({
               
               <Button
                 onClick={isLastStep ? onComplete : onNext}
-                disabled={!canGoNext || isLoading}
+                disabled={!canGoNext || isLoading || isCompleting}
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                {isLoading ? "Saving..." : isLastStep ? "Complete Setup" : "Next"}
+                {isCompleting ? "Completing Setup..." : isLoading ? "Saving..." : isLastStep ? "Complete Setup" : "Next"}
               </Button>
             </div>
           </CardContent>

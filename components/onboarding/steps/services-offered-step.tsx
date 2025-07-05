@@ -2,8 +2,11 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench } from "lucide-react";
+import { Wrench, Plus, X } from "lucide-react";
+import { useState } from "react";
 
 const servicesOfferedOptions = [
   "New Builds",
@@ -22,12 +25,56 @@ interface ServicesOfferedStepProps {
 }
 
 export function ServicesOfferedStep({ selectedServices, onChange }: ServicesOfferedStepProps) {
+  const [customServices, setCustomServices] = useState<string[]>([""]);
+  const [showCustomInputs, setShowCustomInputs] = useState(false);
+
   const handleServiceToggle = (service: string, checked: boolean) => {
-    if (checked) {
-      onChange([...selectedServices, service]);
+    if (service === "Other") {
+      setShowCustomInputs(checked);
+      if (!checked) {
+        // Remove all custom services when "Other" is unchecked
+        const filteredServices = selectedServices.filter(s => !customServices.includes(s));
+        onChange(filteredServices.filter(s => s !== "Other"));
+        setCustomServices([""]);
+      } else {
+        onChange([...selectedServices, service]);
+      }
     } else {
-      onChange(selectedServices.filter(s => s !== service));
+      if (checked) {
+        onChange([...selectedServices, service]);
+      } else {
+        onChange(selectedServices.filter(s => s !== service));
+      }
     }
+  };
+
+  const handleCustomServiceChange = (index: number, value: string) => {
+    const newCustomServices = [...customServices];
+    newCustomServices[index] = value;
+    setCustomServices(newCustomServices);
+
+    // Update the main services list
+    const otherServices = selectedServices.filter(s => !servicesOfferedOptions.includes(s));
+    const standardServices = selectedServices.filter(s => servicesOfferedOptions.includes(s));
+    const validCustomServices = newCustomServices.filter(s => s.trim() !== "");
+    
+    onChange([...standardServices, ...validCustomServices]);
+  };
+
+  const addCustomServiceField = () => {
+    setCustomServices([...customServices, ""]);
+  };
+
+  const removeCustomServiceField = (index: number) => {
+    const newCustomServices = customServices.filter((_, i) => i !== index);
+    setCustomServices(newCustomServices.length === 0 ? [""] : newCustomServices);
+    
+    // Update the main services list
+    const otherServices = selectedServices.filter(s => !servicesOfferedOptions.includes(s));
+    const standardServices = selectedServices.filter(s => servicesOfferedOptions.includes(s));
+    const validCustomServices = newCustomServices.filter(s => s.trim() !== "");
+    
+    onChange([...standardServices, ...validCustomServices]);
   };
 
   return (
@@ -77,10 +124,54 @@ export function ServicesOfferedStep({ selectedServices, onChange }: ServicesOffe
           ))}
         </div>
 
+        {/* Custom service inputs when "Other" is selected */}
+        {showCustomInputs && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">Custom Services:</Label>
+            {customServices.map((customService, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter custom service"
+                  value={customService}
+                  onChange={(e) => handleCustomServiceChange(index, e.target.value)}
+                  maxLength={50}
+                  className="border-orange-200 focus:border-orange-500 focus:ring-orange-500"
+                />
+                {customServices.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeCustomServiceField(index)}
+                    className="shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addCustomServiceField}
+              className="w-fit"
+              disabled={customServices.length >= 5}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Another Service
+            </Button>
+            {customServices.length >= 5 && (
+              <p className="text-xs text-gray-500">Maximum 5 custom services allowed</p>
+            )}
+          </div>
+        )}
+
         {selectedServices.length > 0 && (
           <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
             <p className="text-sm text-orange-800">
-              <strong>Selected services:</strong> {selectedServices.join(", ")}
+              <strong>Selected services:</strong> {selectedServices.filter(s => s !== "Other").join(", ")}
             </p>
           </div>
         )}

@@ -47,6 +47,7 @@ export default function OnboardingPage() {
   const { user, checkOnboarding, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const [formData, setFormData] = useState<OnboardingFormData>({
     businessName: "",
@@ -109,6 +110,8 @@ export default function OnboardingPage() {
     }
 
     setIsLoading(true);
+    setIsCompleting(true);
+    
     try {
       const supabase = createClient();
 
@@ -130,13 +133,18 @@ export default function OnboardingPage() {
 
       toast.success("Onboarding completed successfully!");
       
+      // Update auth store
       await checkOnboarding(user.id);
+      
+      // Don't reset loading states on success - keep button disabled during redirect
       router.push("/dashboard");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Failed to complete onboarding. Please try again.");
-    } finally {
+      
+      // Only reset loading states on error
       setIsLoading(false);
+      setIsCompleting(false);
     }
   };
 
@@ -185,9 +193,10 @@ export default function OnboardingPage() {
       onPrevious={handlePrevious}
       onComplete={handleComplete}
       canGoNext={canGoNext()}
-      canGoPrevious={currentStep > 0}
+      canGoPrevious={currentStep > 0 && !isCompleting}
       isLastStep={currentStep === steps.length - 1}
       isLoading={isLoading}
+      isCompleting={isCompleting}
     >
       {renderCurrentStep()}
     </Stepper>

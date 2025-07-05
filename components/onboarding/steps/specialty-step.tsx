@@ -2,8 +2,11 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { HardHat } from "lucide-react";
+import { HardHat, Plus, X } from "lucide-react";
+import { useState } from "react";
 
 const specialtyOptions = [
   "Builder",
@@ -24,12 +27,54 @@ interface SpecialtyStepProps {
 }
 
 export function SpecialtyStep({ selectedSpecialties, onChange }: SpecialtyStepProps) {
+  const [customSpecialties, setCustomSpecialties] = useState<string[]>([""]);
+  const [showCustomInputs, setShowCustomInputs] = useState(false);
+
   const handleSpecialtyToggle = (specialty: string, checked: boolean) => {
-    if (checked) {
-      onChange([...selectedSpecialties, specialty]);
+    if (specialty === "Other") {
+      setShowCustomInputs(checked);
+      if (!checked) {
+        // Remove all custom specialties when "Other" is unchecked
+        const filteredSpecialties = selectedSpecialties.filter(s => !customSpecialties.includes(s));
+        onChange(filteredSpecialties.filter(s => s !== "Other"));
+        setCustomSpecialties([""]);
+      } else {
+        onChange([...selectedSpecialties, specialty]);
+      }
     } else {
-      onChange(selectedSpecialties.filter(s => s !== specialty));
+      if (checked) {
+        onChange([...selectedSpecialties, specialty]);
+      } else {
+        onChange(selectedSpecialties.filter(s => s !== specialty));
+      }
     }
+  };
+
+  const handleCustomSpecialtyChange = (index: number, value: string) => {
+    const newCustomSpecialties = [...customSpecialties];
+    newCustomSpecialties[index] = value;
+    setCustomSpecialties(newCustomSpecialties);
+
+    // Update the main specialties list
+    const standardSpecialties = selectedSpecialties.filter(s => specialtyOptions.includes(s));
+    const validCustomSpecialties = newCustomSpecialties.filter(s => s.trim() !== "");
+    
+    onChange([...standardSpecialties, ...validCustomSpecialties]);
+  };
+
+  const addCustomSpecialtyField = () => {
+    setCustomSpecialties([...customSpecialties, ""]);
+  };
+
+  const removeCustomSpecialtyField = (index: number) => {
+    const newCustomSpecialties = customSpecialties.filter((_, i) => i !== index);
+    setCustomSpecialties(newCustomSpecialties.length === 0 ? [""] : newCustomSpecialties);
+    
+    // Update the main specialties list
+    const standardSpecialties = selectedSpecialties.filter(s => specialtyOptions.includes(s));
+    const validCustomSpecialties = newCustomSpecialties.filter(s => s.trim() !== "");
+    
+    onChange([...standardSpecialties, ...validCustomSpecialties]);
   };
 
   return (
@@ -79,10 +124,54 @@ export function SpecialtyStep({ selectedSpecialties, onChange }: SpecialtyStepPr
           ))}
         </div>
 
+        {/* Custom specialty inputs when "Other" is selected */}
+        {showCustomInputs && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">Custom Specialties:</Label>
+            {customSpecialties.map((customSpecialty, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter custom specialty"
+                  value={customSpecialty}
+                  onChange={(e) => handleCustomSpecialtyChange(index, e.target.value)}
+                  maxLength={40}
+                  className="border-orange-200 focus:border-orange-500 focus:ring-orange-500"
+                />
+                {customSpecialties.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeCustomSpecialtyField(index)}
+                    className="shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addCustomSpecialtyField}
+              className="w-fit"
+              disabled={customSpecialties.length >= 3}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Another Specialty
+            </Button>
+            {customSpecialties.length >= 3 && (
+              <p className="text-xs text-gray-500">Maximum 3 custom specialties allowed</p>
+            )}
+          </div>
+        )}
+
         {selectedSpecialties.length > 0 && (
           <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
             <p className="text-sm text-orange-800">
-              <strong>Selected specialties:</strong> {selectedSpecialties.join(", ")}
+              <strong>Selected specialties:</strong> {selectedSpecialties.filter(s => s !== "Other").join(", ")}
             </p>
           </div>
         )}
