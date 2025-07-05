@@ -9,14 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { 
-  AlertTriangle, 
-  Bot, 
-  Phone, 
-  Settings,
-  CheckCircle,
-  XCircle
-} from "lucide-react";
+import { AlertTriangle, Bot, Phone, Settings, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AssistantSetupModal } from "@/components/assistant-setup-modal";
 import { SetupAlert } from "@/components/setup-alert";
@@ -82,14 +75,16 @@ export default function AssistantSettingsPage() {
       // Get service provider assistant with preset details
       const { data: assistantData, error: assistantError } = await supabase
         .from("service_provider_assistants")
-        .select(`
+        .select(
+          `
           *,
           assistant_preset:assistant_presets(*)
-        `)
+        `
+        )
         .eq("service_provider_id", serviceProvider.id)
         .single();
 
-      if (assistantError && assistantError.code !== 'PGRST116') {
+      if (assistantError && assistantError.code !== "PGRST116") {
         console.error("Error fetching assistant:", assistantError);
       }
 
@@ -106,14 +101,13 @@ export default function AssistantSettingsPage() {
         .eq("is_active", true)
         .single();
 
-      if (phoneError && phoneError.code !== 'PGRST116') {
+      if (phoneError && phoneError.code !== "PGRST116") {
         console.error("Error fetching phone number:", phoneError);
       }
 
       if (phoneNumber) {
         setAssignedPhoneNumber(phoneNumber);
       }
-
     } catch (error) {
       console.error("Error fetching assistant data:", error);
       toast.error("Failed to load assistant settings");
@@ -147,8 +141,8 @@ export default function AssistantSettingsPage() {
       }
 
       setAssistantEnabled(enabled);
-      setServiceProviderAssistant(prev => prev ? { ...prev, enabled } : null);
-      
+      setServiceProviderAssistant((prev) => (prev ? { ...prev, enabled } : null));
+
       toast.success(enabled ? "AI Assistant activated!" : "AI Assistant deactivated");
     } catch (error) {
       console.error("Error updating assistant status:", error);
@@ -169,10 +163,10 @@ export default function AssistantSettingsPage() {
   const handlePhoneNumberAssigned = (phoneNumber: string) => {
     // Update the assigned phone number state
     setAssignedPhoneNumber({
-      id: 'temp-id',
+      id: "temp-id",
       phone_number: phoneNumber,
-      friendly_name: 'Business Number',
-      is_active: true
+      friendly_name: "Business Number",
+      is_active: true,
     });
     // Also refresh the full data
     fetchAssistantData();
@@ -182,7 +176,6 @@ export default function AssistantSettingsPage() {
     // Open the setup modal starting from the appropriate step
     setShowSetupModal(true);
   };
-
 
   if (loading) {
     return (
@@ -205,18 +198,6 @@ export default function AssistantSettingsPage() {
       {/* Setup Alert */}
       <SetupAlert />
 
-      {/* Setup Required Alert */}
-      {isSetupRequired && (
-        <Alert className="border-yellow-200 bg-yellow-50">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-800">
-            <strong>Setup Required</strong>
-            <br />
-            You need to set up a business phone number before you can activate your AI assistant.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* AI Assistant Status */}
       <Card>
         <CardHeader>
@@ -229,9 +210,7 @@ export default function AssistantSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-medium">
-                  Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}
-                </span>
+                <span className="font-medium">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
                 {assistantEnabled ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
@@ -239,9 +218,7 @@ export default function AssistantSettingsPage() {
                 )}
               </div>
               {!canActivateAssistant && (
-                <p className="text-sm text-orange-600">
-                  Requires business phone number to activate
-                </p>
+                <p className="text-sm text-orange-600">Requires business phone number to activate</p>
               )}
             </div>
             <div className="flex items-center space-x-2">
@@ -265,12 +242,7 @@ export default function AssistantSettingsPage() {
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
             Current Assistant
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-auto"
-              onClick={() => setShowSetupModal(true)}
-            >
+            <Button variant="outline" size="sm" className="ml-auto" onClick={() => setShowSetupModal(true)}>
               <Settings className="h-4 w-4" />
             </Button>
           </CardTitle>
@@ -284,11 +256,7 @@ export default function AssistantSettingsPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-500">No assistant configured</p>
-              <Button 
-                variant="outline" 
-                className="mt-2"
-                onClick={() => setShowSetupModal(true)}
-              >
+              <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
                 Setup Assistant
               </Button>
             </div>
@@ -323,28 +291,13 @@ export default function AssistantSettingsPage() {
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-500">No number assigned</p>
-              <Button 
-                variant="outline" 
-                className="mt-2"
-                onClick={() => setShowSetupModal(true)}
-              >
+              <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
                 Get Phone Number
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Finish Setup Button */}
-      {isSetupRequired && (
-        <Button 
-          className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white"
-          size="lg"
-          onClick={handleSetupButtonClick}
-        >
-          Finish setting up your AI assistant!
-        </Button>
-      )}
 
       {/* Assistant Setup Modal */}
       <AssistantSetupModal
