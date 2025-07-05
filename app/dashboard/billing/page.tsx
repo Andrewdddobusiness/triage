@@ -16,13 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  CalendarIcon,
-  AlertCircleIcon,
-  DownloadIcon,
-  SearchIcon,
-  FilterIcon,
-} from "lucide-react";
+import { CalendarIcon, AlertCircleIcon, DownloadIcon, SearchIcon, FilterIcon } from "lucide-react";
 import { PaymentNotification } from "./payment-notification";
 import { SubscriptionSection } from "./subscription-section";
 
