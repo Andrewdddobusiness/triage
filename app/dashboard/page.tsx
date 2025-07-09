@@ -1,62 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table/table";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { SetupAlert } from "@/components/setup-alert";
-
-interface Inquiry {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string | null;
-  inquiry_date?: string | null;
-  service_date?: string | null;
-  estimated_completion?: string | null;
-  budget?: number | null;
-  status: "new" | "contacted" | "scheduled" | "completed" | "cancelled";
-}
+import { fetchUserInquiries } from "@/app/actions/fetch-inquiries";
 
 export default function DashboardPage() {
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [inquiriesLoading, setInquiriesLoading] = useState(true);
   const searchParams = useSearchParams();
 
   // Handle payment success notification
   useEffect(() => {
-    const paymentStatus = searchParams.get('payment');
-    if (paymentStatus === 'success') {
-      toast.success('Subscription activated successfully! Welcome to Spaak!');
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      toast.success("Subscription activated successfully! Welcome to Spaak!");
       // Clear the query parameter by replacing the URL
-      window.history.replaceState({}, '', '/dashboard');
+      window.history.replaceState({}, "", "/dashboard");
     }
   }, [searchParams]);
 
-  // Fetch inquiries data
+  // Fetch inquiries data using TanStack Query
+  const {
+    data: inquiriesResult,
+    isLoading: inquiriesLoading,
+    error: inquiriesError,
+  } = useQuery({
+    queryKey: ["user-inquiries"],
+    queryFn: fetchUserInquiries,
+    refetchInterval: 30000, // Refetch every 30 seconds to sync with cron job
+    refetchOnWindowFocus: true,
+    staleTime: 25000, // Consider data stale after 25 seconds
+  });
+  console.log(inquiriesResult);
+  // Handle errors
   useEffect(() => {
-    async function fetchInquiries() {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase.from("customer_inquiries").select("*");
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        setInquiries(data as Inquiry[]);
-      } catch (error) {
-        console.error('Error fetching inquiries:', error);
-        toast.error('Failed to load inquiries');
-      } finally {
-        setInquiriesLoading(false);
-      }
+    if (inquiriesError) {
+      console.error("Error fetching inquiries:", inquiriesError);
+      toast.error("Failed to load inquiries");
     }
+  }, [inquiriesError]);
 
-    fetchInquiries();
-  }, []);
+  // Extract inquiries from result
+  const inquiries = inquiriesResult?.data || [];
 
   if (inquiriesLoading) {
     return (

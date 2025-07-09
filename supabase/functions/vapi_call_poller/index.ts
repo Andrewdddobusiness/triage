@@ -30,10 +30,10 @@ async function fetchCallDetails(callId: string) {
   }
 }
 
-// Helper: Fetch ended calls in the last hour
+// Helper: Fetch ended calls in the last 24 hours
 async function fetchRecentCalls() {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const url = `${VAPI_API_BASE}/call?createdAtGt=${encodeURIComponent(oneHourAgo)}`;
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const url = `${VAPI_API_BASE}/call?createdAtGt=${encodeURIComponent(twentyFourHoursAgo)}`;
 
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${VAPI_API_KEY}` },
@@ -81,10 +81,16 @@ async function processCalls() {
       continue;
     }
 
+    // Log the full call object to see available fields
+    console.log("Full call object for analysis:", JSON.stringify(full, null, 2));
+    console.log("Customer object in poller:", JSON.stringify(full.customer, null, 2));
+
     const payload = {
       structuredData: full.analysis.structuredData,
       callId: full.id,
       assistantId: full.assistantId,
+      phoneNumberId: full.phoneNumberId,
+      customer: full.customer,
     };
 
     try {

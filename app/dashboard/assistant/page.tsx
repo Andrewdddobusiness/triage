@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { AssistantSetupModal } from "@/components/assistant-setup-modal";
 import { SetupAlert } from "@/components/setup-alert";
 import { findAndAssignPhoneNumber, deletePhoneNumber } from "@/app/actions/phone-number-assignment";
+import { reconnectPhoneNumberToVapi } from "@/app/actions/reconnect-phone-number";
 
 interface AssistantPreset {
   id: string;
@@ -133,16 +134,21 @@ export default function AssistantSettingsPage() {
       const supabase = createClient();
 
       if (enabled) {
-        // When turning ON: Re-import the phone number to VAPI if it exists but isn't connected
-        if (assignedPhoneNumber && !assignedPhoneNumber.vapi_phone_number_id) {
-          const result = await findAndAssignPhoneNumber();
-          if (!result.success) {
-            toast.error(result.error || "Failed to connect phone number to VAPI");
-            return;
-          }
-          // Refresh data to get updated VAPI connection
-          await fetchAssistantData();
+        // When turning ON: Reconnect the assigned phone number to VAPI
+        const result = await reconnectPhoneNumberToVapi();
+        if (!result.success) {
+          toast.error(result.error || "Failed to connect phone number to VAPI");
+          return;
         }
+        
+        if (result.alreadyConnected) {
+          toast.info("Phone number was already connected to VAPI");
+        } else {
+          toast.success("Phone number connected to VAPI successfully!");
+        }
+        
+        // Refresh data to get updated VAPI connection
+        await fetchAssistantData();
       } else {
         // When turning OFF: Delete the phone number from VAPI (keep assigned to user)
         if (assignedPhoneNumber && assignedPhoneNumber.vapi_phone_number_id) {

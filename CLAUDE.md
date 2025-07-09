@@ -195,7 +195,7 @@ The application uses a multi-tenant architecture with service providers managing
 - `id` (UUID, Primary Key, uuid_generate_v4())
 - `flow` (TEXT, NOT NULL, call flow type)
 - `name` (TEXT, NOT NULL)
-- `phone` (TEXT, NOT NULL)
+- `phone` (TEXT, NOT NULL, customer's phone number - the caller)
 - `email` (TEXT)
 - `inquiry_date` (TIMESTAMPTZ, DEFAULT NOW())
 - `preferred_service_date` (TIMESTAMPTZ)
@@ -211,6 +211,8 @@ The application uses a multi-tenant architecture with service providers managing
 - `country` (TEXT, DEFAULT 'Australia')
 - `call_sid` (TEXT)
 - `assistant_id` (TEXT)
+- `business_phone` (TEXT, service provider's phone number that received the call)
+- `business_phone_id` (TEXT, VAPI phone number ID)
 - `status` (TEXT, DEFAULT 'new', CHECK: 'new' | 'contacted' | 'scheduled' | 'completed' | 'cancelled')
 - `created_at` (TIMESTAMPTZ, DEFAULT NOW())
 - `updated_at` (TIMESTAMPTZ, DEFAULT NOW(), auto-updated)
@@ -286,8 +288,9 @@ The application uses a multi-tenant architecture with service providers managing
 - `service_provider_assistants.assistant_preset_id` → `assistant_presets.id`
 - `twilio_phone_numbers.assigned_to` → `service_providers.id`
 - `subscriptions.service_provider_id` → `service_providers.id`
+- `customer_inquiries.business_phone` → `twilio_phone_numbers.phone_number` (links inquiries to service providers)
 
-Note: Customer inquiries and messages are not directly linked to service providers - they're matched via assistant_id and call routing logic.
+Note: Customer inquiries are linked to service providers via the business_phone field, which matches the phone number that received the call from VAPI.
 
 ### Google Places API Integration
 
