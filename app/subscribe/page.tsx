@@ -17,9 +17,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 
-interface SubscribePageProps {
-  searchParams?: { userId?: string };
-}
 
 const benefits = [
   {
@@ -44,7 +41,7 @@ const benefits = [
   },
 ];
 
-export default function SubscribePage({ searchParams }: SubscribePageProps) {
+export default function SubscribePage() {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();

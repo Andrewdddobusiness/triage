@@ -98,7 +98,6 @@ export default function AssistantSettingsPage() {
         .from("twilio_phone_numbers")
         .select("*")
         .eq("assigned_to", serviceProvider.id)
-        .eq("is_active", true)
         .single();
 
       if (phoneError && phoneError.code !== "PGRST116") {
@@ -152,7 +151,6 @@ export default function AssistantSettingsPage() {
     }
   };
 
-  const isSetupRequired = !assignedPhoneNumber;
   const canActivateAssistant = serviceProviderAssistant && assignedPhoneNumber;
 
   const handleAssistantConfigured = () => {

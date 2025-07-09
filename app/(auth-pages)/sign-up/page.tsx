@@ -324,7 +324,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
             </div>
 
             {/* Google Sign In Button */}
-            <form action={signInWithGoogleAction}>
+            {/* <form action={signInWithGoogleAction}>
               <Button
                 type="submit"
                 variant="outline"
@@ -350,14 +350,14 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
                 </svg>
                 <span className="text-gray-700 font-medium">Log in with Google</span>
               </Button>
-            </form>
+            </form> */}
 
             {/* Divider */}
-            <div className="flex items-center mb-6">
+            {/* <div className="flex items-center mb-6">
               <div className="flex-1 border-t border-gray-300"></div>
               <span className="px-4 text-gray-500 text-sm">OR</span>
               <div className="flex-1 border-t border-gray-300"></div>
-            </div>
+            </div> */}
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               {/* Name Field */}

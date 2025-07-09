@@ -10,8 +10,14 @@ import { SetupAlert } from "@/components/setup-alert";
 
 interface Inquiry {
   id: string;
-  status: string;
-  // Add other inquiry properties as needed
+  name: string;
+  phone: string;
+  email?: string | null;
+  inquiry_date?: string | null;
+  service_date?: string | null;
+  estimated_completion?: string | null;
+  budget?: number | null;
+  status: "new" | "contacted" | "scheduled" | "completed" | "cancelled";
 }
 
 export default function DashboardPage() {
