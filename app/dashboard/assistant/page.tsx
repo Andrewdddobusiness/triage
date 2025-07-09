@@ -13,6 +13,7 @@ import { AlertTriangle, Bot, Phone, Settings, CheckCircle, XCircle } from "lucid
 import { toast } from "sonner";
 import { AssistantSetupModal } from "@/components/assistant-setup-modal";
 import { SetupAlert } from "@/components/setup-alert";
+import { findAndAssignPhoneNumber, deletePhoneNumber } from "@/app/actions/phone-number-assignment";
 
 interface AssistantPreset {
   id: string;
@@ -39,6 +40,7 @@ interface TwilioPhoneNumber {
   phone_number: string;
   friendly_name: string;
   is_active: boolean;
+  vapi_phone_number_id: string | null;
 }
 
 export default function AssistantSettingsPage() {
@@ -96,7 +98,7 @@ export default function AssistantSettingsPage() {
       // Get assigned phone number
       const { data: phoneNumber, error: phoneError } = await supabase
         .from("twilio_phone_numbers")
-        .select("*")
+        .select("id, phone_number, friendly_name, is_active, vapi_phone_number_id")
         .eq("assigned_to", serviceProvider.id)
         .single();
 
@@ -130,6 +132,31 @@ export default function AssistantSettingsPage() {
       setUpdating(true);
       const supabase = createClient();
 
+      if (enabled) {
+        // When turning ON: Re-import the phone number to VAPI if it exists but isn't connected
+        if (assignedPhoneNumber && !assignedPhoneNumber.vapi_phone_number_id) {
+          const result = await findAndAssignPhoneNumber();
+          if (!result.success) {
+            toast.error(result.error || "Failed to connect phone number to VAPI");
+            return;
+          }
+          // Refresh data to get updated VAPI connection
+          await fetchAssistantData();
+        }
+      } else {
+        // When turning OFF: Delete the phone number from VAPI (keep assigned to user)
+        if (assignedPhoneNumber && assignedPhoneNumber.vapi_phone_number_id) {
+          const result = await deletePhoneNumber();
+          if (!result.success) {
+            toast.error(result.error || "Failed to disconnect phone number from VAPI");
+            return;
+          }
+          // Refresh data to reflect VAPI disconnection
+          await fetchAssistantData();
+        }
+      }
+
+      // Update assistant enabled status
       const { error } = await supabase
         .from("service_provider_assistants")
         .update({ enabled })
@@ -165,6 +192,7 @@ export default function AssistantSettingsPage() {
       phone_number: phoneNumber,
       friendly_name: "Business Number",
       is_active: true,
+      vapi_phone_number_id: null, // Will be set when VAPI connection is established
     });
     // Also refresh the full data
     fetchAssistantData();
@@ -216,7 +244,11 @@ export default function AssistantSettingsPage() {
                 )}
               </div>
               {!canActivateAssistant && (
-                <p className="text-sm text-orange-600">Requires business phone number to activate</p>
+                <p className="text-sm text-orange-600">
+                  {!serviceProviderAssistant 
+                    ? "Requires assistant configuration to activate" 
+                    : "Requires business phone number to activate"}
+                </p>
               )}
             </div>
             <div className="flex items-center space-x-2">
@@ -272,14 +304,24 @@ export default function AssistantSettingsPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm">{assignedPhoneNumber.phone_number}</span>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Active
+                <Badge variant="secondary" className={
+                  assignedPhoneNumber.vapi_phone_number_id 
+                    ? "bg-green-100 text-green-800" 
+                    : "bg-yellow-100 text-yellow-800"
+                }>
+                  {assignedPhoneNumber.vapi_phone_number_id ? "Connected" : "Disconnected"}
                 </Badge>
               </div>
+              <p className="text-xs text-zinc-500">
+                {assignedPhoneNumber.vapi_phone_number_id 
+                  ? "Phone number is connected to VAPI and accepting calls" 
+                  : "Phone number is assigned but disconnected from VAPI"}
+              </p>
             </div>
           ) : (
             <div className="text-center py-4">
               <p className="text-zinc-500 text-sm">No number assigned</p>
+              <p className="text-xs text-zinc-400 mt-1">Use the assistant setup to assign a business phone number</p>
             </div>
           )}
         </CardContent>
