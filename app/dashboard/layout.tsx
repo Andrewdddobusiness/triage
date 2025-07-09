@@ -104,7 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             // Mark as seen when modal is shown (error case)
             try {
               await updateSetupFlags({ has_seen_assistant_setup: true });
-                } catch (error) {
+            } catch (error) {
               console.error("🏠 Layout: Failed to update setup flag (error case):", error);
             }
           }, 1500);
@@ -137,7 +137,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p>Loading dashboard...</p>
         </div>
       </div>
