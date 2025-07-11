@@ -100,19 +100,28 @@ export const columns: ColumnDef<Inquiry>[] = [
     },
   },
   {
-    accessorKey: "service_date",
-    header: "Service Date",
+    accessorKey: "job_type",
+    header: "Job Type",
+    enableSorting: true,
     cell: ({ row }) => {
-      const value = row.original.service_date;
-      return value ? new Date(value).toLocaleDateString() : "N/A";
+      const value = row.original.job_type;
+      return value || "N/A";
     },
   },
   {
-    accessorKey: "estimated_completion",
-    header: "Est. Completion",
+    accessorKey: "preferred_service_date",
+    header: "Job Time",
     cell: ({ row }) => {
-      const value = row.original.estimated_completion;
-      return value ? new Date(value).toLocaleDateString() : "N/A";
+      const dateValue = row.original.preferred_service_date;
+      const textValue = row.original.preferred_service_date_text;
+      
+      if (textValue) {
+        return textValue;
+      } else if (dateValue) {
+        return new Date(dateValue).toLocaleDateString();
+      } else {
+        return "N/A";
+      }
     },
   },
   {

@@ -47,13 +47,7 @@ import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, 
 const inquiryArraySchema = z.array(inquirySchema);
 export type Inquiry = z.infer<typeof inquirySchema>;
 
-function DraggableRow({ 
-  row, 
-  onRowClick 
-}: { 
-  row: Row<Inquiry>;
-  onRowClick?: (inquiryId: string) => void;
-}) {
+function DraggableRow({ row, onRowClick }: { row: Row<Inquiry>; onRowClick?: (inquiryId: string) => void }) {
   // This hook ties a row to @dnd-kit sorting
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
@@ -84,10 +78,10 @@ function DraggableRow({
   );
 }
 
-export function DataTable({ 
-  data: initialData, 
-  onRowClick 
-}: { 
+export function DataTable({
+  data: initialData,
+  onRowClick,
+}: {
   data: Inquiry[];
   onRowClick?: (inquiryId: string) => void;
 }) {
@@ -103,8 +97,10 @@ export function DataTable({
 
   // For the top bar filters
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedDate, setSelectedDate] = React.useState("");
-  const [selectedBudget, setSelectedBudget] = React.useState("");
+  const [selectedRecency, setSelectedRecency] = React.useState("");
+  const [selectedBudgetRange, setSelectedBudgetRange] = React.useState("");
+  const [selectedStatus, setSelectedStatus] = React.useState("");
+  const [selectedJobType, setSelectedJobType] = React.useState("");
 
   // DnD sensors
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor), useSensor(KeyboardSensor));
@@ -165,29 +161,82 @@ export function DataTable({
     }
   }
 
-  // Example filter logic (very simplistic)
-  // Typically you'd use a custom filter or the built-in column filters.
+  // Get unique job types from data for filter options
+  const uniqueJobTypes = React.useMemo(() => {
+    const types = [...new Set(data.map((row) => row.job_type).filter(Boolean))];
+    return types.sort();
+  }, [data]);
+
+  // Enhanced filter logic
   const filteredData = React.useMemo(() => {
     return data.filter((row) => {
-      // Basic string matching on name/phone/email
+      // Search term matching on name/phone/email/job description
       const matchesSearch =
+        !searchTerm ||
         row.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         row.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (row.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (row.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (row.job_description || "").toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Basic date match if user selected a date
-      const matchesDate = selectedDate ? row.service_date?.slice(0, 10) === selectedDate : true;
+      // Recency filter based on inquiry date
+      const matchesRecency =
+        !selectedRecency ||
+        selectedRecency === "all" ||
+        (() => {
+          if (!row.created_at) return false;
+          const inquiryDate = new Date(row.created_at);
+          const now = new Date();
+          const daysDiff = Math.floor((now.getTime() - inquiryDate.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Basic budget match if user selected a budget
-      // e.g. "All budgets", "Under $1000", etc.
-      // (You can expand or parse this logic as needed.)
-      const matchesBudget = selectedBudget
-        ? selectedBudget === "All" // or custom logic
-        : true;
+          switch (selectedRecency) {
+            case "today":
+              return daysDiff === 0;
+            case "week":
+              return daysDiff <= 7;
+            case "month":
+              return daysDiff <= 30;
+            case "3months":
+              return daysDiff <= 90;
+            default:
+              return true;
+          }
+        })();
 
-      return matchesSearch && matchesDate && matchesBudget;
+      // Budget range filter
+      const matchesBudget =
+        !selectedBudgetRange ||
+        selectedBudgetRange === "all" ||
+        (() => {
+          const budget = row.budget;
+          if (!budget) return selectedBudgetRange === "unspecified";
+
+          switch (selectedBudgetRange) {
+            case "under500":
+              return budget < 500;
+            case "500-1000":
+              return budget >= 500 && budget <= 1000;
+            case "1000-5000":
+              return budget > 1000 && budget <= 5000;
+            case "5000-10000":
+              return budget > 5000 && budget <= 10000;
+            case "over10000":
+              return budget > 10000;
+            case "unspecified":
+              return false; // already handled above
+            default:
+              return true;
+          }
+        })();
+
+      // Status filter
+      const matchesStatus = !selectedStatus || selectedStatus === "all" || row.status === selectedStatus;
+
+      // Job type filter
+      const matchesJobType = !selectedJobType || selectedJobType === "all" || row.job_type === selectedJobType;
+
+      return matchesSearch && matchesRecency && matchesBudget && matchesStatus && matchesJobType;
     });
-  }, [data, searchTerm, selectedDate, selectedBudget]);
+  }, [data, searchTerm, selectedRecency, selectedBudgetRange, selectedStatus, selectedJobType]);
 
   // Because we used "data" directly in the table, let's pass filteredData
   // back to the table. Or you can incorporate filtering directly in your
@@ -197,31 +246,69 @@ export function DataTable({
   return (
     <div className="flex w-full flex-col gap-4">
       {/* Top bar filters */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:px-4 lg:px-6">
+      <div className="flex flex-wrap items-center gap-4 px-2 sm:px-4 lg:px-6">
         <Input
           placeholder="Search customers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-[200px] lg:w-[250px]"
         />
-        <Input
-          placeholder="dd/mm/yyyy"
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-[150px]"
-        />
-        {/* <Select value={selectedBudget} onValueChange={(val) => setSelectedBudget(val)}>
-          <SelectTrigger className="w-[150px]">
+
+        <Select value={selectedRecency} onValueChange={setSelectedRecency}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Inquiry Dates" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All dates</SelectItem>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="week">This week</SelectItem>
+            <SelectItem value="month">This month</SelectItem>
+            <SelectItem value="3months">Last 3 months</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedBudgetRange} onValueChange={setSelectedBudgetRange}>
+          <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All budgets" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All budgets</SelectItem>
-            <SelectItem value="Under 1000">Under $1000</SelectItem>
-            <SelectItem value="Under 5000">Under $5000</SelectItem>
-       
+            <SelectItem value="all">All budgets</SelectItem>
+            <SelectItem value="under500">Under $500</SelectItem>
+            <SelectItem value="500-1000">$500 - $1,000</SelectItem>
+            <SelectItem value="1000-5000">$1,000 - $5,000</SelectItem>
+            <SelectItem value="5000-10000">$5,000 - $10,000</SelectItem>
+            <SelectItem value="over10000">Over $10,000</SelectItem>
+            <SelectItem value="unspecified">Unspecified</SelectItem>
           </SelectContent>
-        </Select> */}
+        </Select>
+
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="All status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All status</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="contacted">Contacted</SelectItem>
+            <SelectItem value="scheduled">Scheduled</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedJobType} onValueChange={setSelectedJobType}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All job types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All job types</SelectItem>
+            {uniqueJobTypes.map((jobType) => (
+              <SelectItem key={jobType} value={jobType}>
+                {jobType}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* DataTable */}
