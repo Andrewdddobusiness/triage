@@ -47,18 +47,31 @@ import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, 
 const inquiryArraySchema = z.array(inquirySchema);
 export type Inquiry = z.infer<typeof inquirySchema>;
 
-function DraggableRow({ row }: { row: Row<Inquiry> }) {
+function DraggableRow({ 
+  row, 
+  onRowClick 
+}: { 
+  row: Row<Inquiry>;
+  onRowClick?: (inquiryId: string) => void;
+}) {
   // This hook ties a row to @dnd-kit sorting
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
+
+  const handleRowClick = () => {
+    if (onRowClick) {
+      onRowClick(row.original.id);
+    }
+  };
 
   return (
     <TableRow
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      onClick={handleRowClick}
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-muted/50 transition-colors"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -71,7 +84,13 @@ function DraggableRow({ row }: { row: Row<Inquiry> }) {
   );
 }
 
-export function DataTable({ data: initialData }: { data: Inquiry[] }) {
+export function DataTable({ 
+  data: initialData, 
+  onRowClick 
+}: { 
+  data: Inquiry[];
+  onRowClick?: (inquiryId: string) => void;
+}) {
   const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -233,7 +252,7 @@ export function DataTable({ data: initialData }: { data: Inquiry[] }) {
                     // we manually render rows that match the filter.
                     const row = rowModel.rows.find((r) => r.original.id === inquiry.id);
                     if (!row) return null;
-                    return <DraggableRow key={row.id} row={row} />;
+                    return <DraggableRow key={row.id} row={row} onRowClick={onRowClick} />;
                   })
                 ) : (
                   <TableRow>

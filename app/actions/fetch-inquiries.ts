@@ -107,3 +107,77 @@ export async function fetchUserInquiries() {
     };
   }
 }
+
+export async function fetchInquiryDetails(inquiryId: string) {
+  try {
+    const supabase = await createClient();
+    
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: "User not authenticated", data: null };
+    }
+
+    // Get service provider ID
+    const { data: serviceProvider, error: spError } = await supabase
+      .from("service_providers")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    if (spError || !serviceProvider) {
+      return { success: false, error: "Service provider not found", data: null };
+    }
+
+    // Get the phone number assigned to this service provider for verification
+    const { data: phoneNumber, error: phoneError } = await supabase
+      .from("twilio_phone_numbers")
+      .select("phone_number, vapi_phone_number_id")
+      .eq("assigned_to", serviceProvider.id)
+      .single();
+
+    if (phoneError || !phoneNumber) {
+      return { success: false, error: "No phone number assigned", data: null };
+    }
+
+    // Fetch the specific inquiry
+    const { data: inquiry, error: inquiryError } = await supabase
+      .from("customer_inquiries")
+      .select("*")
+      .eq("id", inquiryId)
+      .single();
+
+    if (inquiryError) {
+      return { success: false, error: inquiryError.message, data: null };
+    }
+
+    if (!inquiry) {
+      return { success: false, error: "Inquiry not found", data: null };
+    }
+
+    // Verify this inquiry belongs to the current user by checking business phone
+    let isOwner = false;
+    
+    if (phoneNumber.vapi_phone_number_id && inquiry.business_phone_id) {
+      // Check by VAPI phone number ID (most reliable)
+      isOwner = inquiry.business_phone_id === phoneNumber.vapi_phone_number_id;
+    } else if (inquiry.business_phone) {
+      // Fallback: Check by phone number formats
+      const possibleFormats = generatePhoneFormats(phoneNumber.phone_number);
+      isOwner = possibleFormats.includes(inquiry.business_phone);
+    }
+
+    if (!isOwner) {
+      return { success: false, error: "Unauthorized access to inquiry", data: null };
+    }
+
+    return { success: true, data: inquiry as Inquiry };
+  } catch (error) {
+    console.error("Error fetching inquiry details:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to fetch inquiry details",
+      data: null 
+    };
+  }
+}
