@@ -101,11 +101,39 @@ export const columns: ColumnDef<Inquiry>[] = [
   },
   {
     accessorKey: "job_type",
-    header: "Job Type",
+    header: "Service Type",
     enableSorting: true,
     cell: ({ row }) => {
       const value = row.original.job_type;
-      return value || "N/A";
+      if (!value) return "N/A";
+      
+      // Categorize the job type for display consistency
+      const categorizeJobType = (jobType: string): string => {
+        const jobTypeLower = jobType.toLowerCase();
+        
+        const serviceKeywordMappings = {
+          "New Builds": ["new build", "new builds", "new construction", "new home", "new house", "construction", "building", "build", "new property", "ground up"],
+          "Renovations": ["renovation", "renovations", "renovate", "remodel", "remodeling", "kitchen renovation", "bathroom renovation", "home renovation", "renovation work", "makeover", "upgrade", "modernize", "refurbish", "kitchen remodel", "bathroom remodel", "room renovation"],
+          "Repairs": ["repair", "repairs", "fix", "fixing", "broken", "maintenance", "leak repair", "roof repair", "plumbing repair", "electrical repair", "pipe repair", "drain repair", "tap repair", "faucet repair", "heating repair", "cooling repair", "hvac repair", "boiler repair"],
+          "Installations": ["installation", "installations", "install", "installing", "fit", "fitting", "new installation", "system installation", "appliance installation", "fixture installation", "equipment installation", "setup", "mounting"],
+          "Emergency Call-Outs": ["emergency", "urgent", "call-out", "callout", "emergency call", "urgent repair", "emergency service", "after hours", "weekend service", "immediate", "asap", "burst pipe", "no hot water", "no heating"],
+          "Inspections": ["inspection", "inspections", "check", "assessment", "survey", "safety inspection", "compliance check", "pre-purchase inspection", "building inspection", "system check", "maintenance check"],
+          "Custom Work": ["custom", "bespoke", "specialized", "unique", "custom work", "special project", "one-off", "tailored", "specific requirements"]
+        };
+        
+        for (const [category, keywords] of Object.entries(serviceKeywordMappings)) {
+          if (keywords.some(keyword => jobTypeLower.includes(keyword.toLowerCase()))) {
+            return category;
+          }
+        }
+        
+        return jobType;
+      };
+      
+      const categorized = categorizeJobType(value);
+      
+      // Show original with categorized in parentheses if different
+      return categorized === value ? categorized : `${categorized}`;
     },
   },
   {

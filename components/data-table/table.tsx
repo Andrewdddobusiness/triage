@@ -28,24 +28,82 @@ import {
   Row,
 } from "@tanstack/react-table";
 
-import { inquirySchema } from "@/schema/inquiry";
 import { columns } from "./columns"; // The columns from above
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
+import { Inquiry } from "@/app/actions/fetch-inquiries";
 
-const inquiryArraySchema = z.array(inquirySchema);
-export type Inquiry = z.infer<typeof inquirySchema>;
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
+
+// Services offered options from onboarding with keyword mappings
+const servicesOfferedOptions = [
+  "New Builds",
+  "Renovations", 
+  "Repairs",
+  "Installations",
+  "Emergency Call-Outs",
+  "Inspections",
+  "Custom Work",
+  "Other",
+];
+
+// Service category mappings with keywords/variants
+const serviceKeywordMappings = {
+  "New Builds": [
+    "new build", "new builds", "new construction", "new home", "new house",
+    "construction", "building", "build", "new property", "ground up"
+  ],
+  "Renovations": [
+    "renovation", "renovations", "renovate", "remodel", "remodeling", 
+    "kitchen renovation", "bathroom renovation", "home renovation", 
+    "renovation work", "makeover", "upgrade", "modernize", "refurbish",
+    "kitchen remodel", "bathroom remodel", "room renovation"
+  ],
+  "Repairs": [
+    "repair", "repairs", "fix", "fixing", "broken", "maintenance",
+    "leak repair", "roof repair", "plumbing repair", "electrical repair",
+    "pipe repair", "drain repair", "tap repair", "faucet repair",
+    "heating repair", "cooling repair", "hvac repair", "boiler repair"
+  ],
+  "Installations": [
+    "installation", "installations", "install", "installing", "fit", "fitting",
+    "new installation", "system installation", "appliance installation",
+    "fixture installation", "equipment installation", "setup", "mounting"
+  ],
+  "Emergency Call-Outs": [
+    "emergency", "urgent", "call-out", "callout", "emergency call",
+    "urgent repair", "emergency service", "after hours", "weekend service",
+    "immediate", "asap", "burst pipe", "no hot water", "no heating"
+  ],
+  "Inspections": [
+    "inspection", "inspections", "check", "assessment", "survey",
+    "safety inspection", "compliance check", "pre-purchase inspection",
+    "building inspection", "system check", "maintenance check"
+  ],
+  "Custom Work": [
+    "custom", "bespoke", "specialized", "unique", "custom work",
+    "special project", "one-off", "tailored", "specific requirements"
+  ]
+};
+
+// Function to categorize job type based on keywords
+function categorizeJobType(jobType: string | null | undefined): string | null {
+  if (!jobType) return null;
+  
+  const jobTypeLower = jobType.toLowerCase();
+  
+  // Check each service category for keyword matches
+  for (const [category, keywords] of Object.entries(serviceKeywordMappings)) {
+    if (keywords.some(keyword => jobTypeLower.includes(keyword.toLowerCase()))) {
+      return category;
+    }
+  }
+  
+  // If no match found, return the original job type
+  return jobType;
+}
 
 function DraggableRow({ row, onRowClick }: { row: Row<Inquiry>; onRowClick?: (inquiryId: string) => void }) {
   // This hook ties a row to @dnd-kit sorting
@@ -161,11 +219,10 @@ export function DataTable({
     }
   }
 
-  // Get unique job types from data for filter options
-  const uniqueJobTypes = React.useMemo(() => {
-    const types = [...new Set(data.map((row) => row.job_type).filter(Boolean))];
-    return types.sort();
-  }, [data]);
+  // Use services offered options for job type filter instead of dynamic data
+  const availableJobTypes = React.useMemo(() => {
+    return servicesOfferedOptions.filter(service => service !== "Other").sort();
+  }, []);
 
   // Enhanced filter logic
   const filteredData = React.useMemo(() => {
@@ -231,8 +288,11 @@ export function DataTable({
       // Status filter
       const matchesStatus = !selectedStatus || selectedStatus === "all" || row.status === selectedStatus;
 
-      // Job type filter
-      const matchesJobType = !selectedJobType || selectedJobType === "all" || row.job_type === selectedJobType;
+      // Job type filter with smart categorization
+      const matchesJobType = !selectedJobType || selectedJobType === "all" || (() => {
+        const categorizedJobType = categorizeJobType(row.job_type);
+        return categorizedJobType === selectedJobType;
+      })();
 
       return matchesSearch && matchesRecency && matchesBudget && matchesStatus && matchesJobType;
     });
@@ -298,11 +358,11 @@ export function DataTable({
 
         <Select value={selectedJobType} onValueChange={setSelectedJobType}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="All job types" />
+            <SelectValue placeholder="All services" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All job types</SelectItem>
-            {uniqueJobTypes.map((jobType) => (
+            <SelectItem value="all">All services</SelectItem>
+            {availableJobTypes.map((jobType) => (
               <SelectItem key={jobType} value={jobType}>
                 {jobType}
               </SelectItem>
