@@ -383,3 +383,223 @@ Located in `supabase/functions/`:
 - **Lazy Loading**: Components loaded on demand where appropriate
 - **Image Optimization**: Next.js automatic image optimization
 - **Bundle Optimization**: Automatic code splitting with App Router
+
+## Layout & Responsive Design Best Practices
+
+### Component Layout Principles
+
+#### 1. **Height Management Strategy**
+
+**✅ Recommended Approach:**
+```typescript
+// Top-level containers: Use full viewport height
+className="h-screen"           // Full viewport height
+className="min-h-screen"       // Minimum full height, can grow
+
+// Layout containers: Use flex with proper direction
+className="flex flex-col h-full"      // Vertical stacking
+className="flex h-full"               // Horizontal layout
+
+// Content areas: Use flex-1 to fill remaining space
+className="flex-1 overflow-auto"     // Takes remaining space, scrolls if needed
+```
+
+**❌ Avoid These Patterns:**
+```typescript
+// Don't mix conflicting height constraints
+className="h-full h-screen"           // Conflicting heights
+className="h-auto h-full"             // Circular dependencies
+
+// Don't use fixed heights for main content areas
+className="h-[600px]"                 // Not responsive to screen size
+```
+
+#### 2. **Width Management Strategy**
+
+**✅ Responsive Width Patterns:**
+```typescript
+// Container widths: Use max-width with responsive classes
+className="w-full max-w-7xl mx-auto px-4"
+
+// Component widths: Use percentage or viewport units
+className="w-full"                    // Full width of container
+className="w-1/2 lg:w-1/3"          // Responsive fractions
+className="min-w-0"                  // Prevent content overflow
+
+// Filter/control widths: Use consistent sizing
+className="w-[140px]"                // Fixed width for controls
+className="w-[200px] lg:w-[250px]"   // Responsive control width
+```
+
+#### 3. **Resizable Panel Implementation**
+
+**Using shadcn/ui ResizablePanelGroup:**
+```typescript
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+
+// ✅ Correct implementation
+<ResizablePanelGroup direction="horizontal" className="h-screen">
+  <ResizablePanel defaultSize={70} minSize={50}>
+    {/* Main content - takes most space */}
+  </ResizablePanel>
+  <ResizableHandle withHandle />
+  <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
+    {/* Sidebar content - constrained size */}
+  </ResizablePanel>
+</ResizablePanelGroup>
+```
+
+**Key Rules:**
+- Use `h-screen` or `h-full` on the top-level ResizablePanelGroup
+- Set sensible `defaultSize`, `minSize`, and `maxSize` constraints
+- Main content panels should have higher `minSize` values
+- Detail panels should have `maxSize` constraints to prevent overwhelming content
+
+#### 4. **Sidebar Integration Patterns**
+
+**Dashboard Layout Structure:**
+```typescript
+// Layout hierarchy that works with shadcn sidebar
+<SidebarProvider>
+  <AppSidebar />                      // Left navigation sidebar
+  <ResizablePanelGroup>              // Full-height resizable area
+    <ResizablePanel>
+      <SidebarInset>                 // Header + content area
+        <header>...</header>         // Fixed header
+        <main>...</main>             // Scrollable content
+      </SidebarInset>
+    </ResizablePanel>
+    {conditionalRightPanel && (
+      <ResizablePanel>              // Right detail panel
+        <DetailComponent />
+      </ResizablePanel>
+    )}
+  </ResizablePanelGroup>
+</SidebarProvider>
+```
+
+#### 5. **Scroll Management**
+
+**Container Scroll Strategy:**
+```typescript
+// ✅ Proper scroll containers
+className="overflow-auto"            // Allow scrolling when needed
+className="overflow-hidden"          // Prevent scrolling (for layout containers)
+className="overflow-y-auto"          // Vertical scroll only
+
+// ✅ Content that should scroll
+<div className="flex-1 overflow-auto p-6">
+  {/* Long content that may need scrolling */}
+</div>
+
+// ✅ Fixed headers that shouldn't scroll
+<header className="flex-shrink-0 h-16">
+  {/* Always visible header */}
+</header>
+```
+
+#### 6. **Responsive Breakpoints Strategy**
+
+**Mobile-First Approach:**
+```typescript
+// ✅ Mobile-first responsive classes
+className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
+
+// Filter layouts: Stack on mobile, row on desktop
+className="flex flex-col gap-4 md:flex-row md:items-center"
+
+// Hide elements on small screens
+className="hidden md:block"          // Show on medium screens and up
+className="block md:hidden"          // Show only on small screens
+```
+
+**Responsive Filter Bar Pattern:**
+```typescript
+<div className="flex flex-wrap items-center gap-4 px-2 sm:px-4 lg:px-6">
+  <Input className="w-[200px] lg:w-[250px]" />
+  <Select className="w-[140px]" />
+  <Select className="w-[120px]" />
+</div>
+```
+
+#### 7. **Data Table Layout Best Practices**
+
+**Table Container Pattern:**
+```typescript
+<div className="flex w-full flex-col gap-4">
+  {/* Filters: Always visible, responsive */}
+  <div className="flex flex-wrap items-center gap-4">
+    {/* Filter components with consistent widths */}
+  </div>
+  
+  {/* Table: Scrollable container */}
+  <div className="overflow-hidden rounded-lg border">
+    <Table>
+      {/* Table content */}
+    </Table>
+  </div>
+  
+  {/* Pagination: Fixed at bottom */}
+  <div className="flex items-center justify-between">
+    {/* Pagination controls */}
+  </div>
+</div>
+```
+
+#### 8. **Modal and Overlay Positioning**
+
+**Full-Screen Overlays:**
+```typescript
+// ✅ Proper modal/sidebar overlay positioning
+className="fixed inset-0 z-50"              // Full screen overlay
+className="fixed right-0 top-0 h-screen"    // Right-aligned overlay
+className="fixed inset-0 bg-black/20 z-40"  // Backdrop overlay
+```
+
+### Common Layout Anti-Patterns to Avoid
+
+**❌ Height Conflicts:**
+```typescript
+// Don't create circular height dependencies
+<div className="h-full">
+  <div className="h-full">
+    <div className="h-[calc(100%-60px)]">  // Manual height calculations
+```
+
+**❌ Fixed Sizes for Dynamic Content:**
+```typescript
+className="h-[600px] w-[800px]"  // Not responsive
+className="max-h-[400px]"        // May cut off content
+```
+
+**❌ Mixing Layout Systems:**
+```typescript
+// Don't mix CSS Grid with Flexbox incorrectly
+className="grid grid-cols-2 flex flex-row"  // Conflicting layout methods
+```
+
+### Testing Layout Responsiveness
+
+**Always Test These Scenarios:**
+1. **Mobile Portrait** (320px - 480px width)
+2. **Mobile Landscape** (480px - 768px width) 
+3. **Tablet** (768px - 1024px width)
+4. **Desktop** (1024px+ width)
+5. **Large Desktop** (1440px+ width)
+
+**Browser Testing:**
+- Test with browser zoom at 125%, 150%, 200%
+- Test with browser developer tools device simulation
+- Test actual resizing of browser window
+- Test with very tall and very short content
+
+### Key Principles Summary
+
+1. **Use viewport units** (`h-screen`, `min-h-screen`) for full-height layouts
+2. **Use flexbox** with `flex-1` for dynamic space allocation  
+3. **Set proper constraints** on resizable panels (min/max sizes)
+4. **Separate fixed and scrollable areas** clearly
+5. **Use consistent sizing** for filter controls and UI elements
+6. **Test responsive behavior** at all breakpoints
+7. **Avoid fixed pixel heights** for main content areas
+8. **Use overflow controls** strategically to prevent layout breaks
