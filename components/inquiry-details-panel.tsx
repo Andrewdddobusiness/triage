@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Phone, Mail, MapPin, Calendar, DollarSign, User, FileText, Clock, Copy } from "lucide-react";
+import { X, Phone, Mail, MapPin, Calendar, DollarSign, User, FileText, Clock, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/inquiry/status-badge";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Inquiry, fetchInquiryDetails } from "@/app/actions/fetch-inquiries";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface InquiryDetailsPanelProps {
   inquiryId: string | null;
@@ -64,13 +65,6 @@ function capitalizeText(text: string | null | undefined) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function copyToClipboard(text: string, fieldName: string) {
-  navigator.clipboard.writeText(text).then(() => {
-    toast.success(`${fieldName} copied to clipboard`);
-  }).catch(() => {
-    toast.error(`Failed to copy ${fieldName}`);
-  });
-}
 
 function formatFullAddress(inquiry: Inquiry | undefined) {
   if (!inquiry) return "Not provided";
@@ -88,6 +82,21 @@ function formatFullAddress(inquiry: Inquiry | undefined) {
 
 
 export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelProps) {
+  // State to track which copy button was just clicked for visual feedback
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Enhanced copy function with visual feedback
+  const handleCopyToClipboard = (text: string, fieldName: string, fieldKey: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success(`${fieldName} copied to clipboard`);
+      setCopiedField(fieldKey);
+      // Reset the checkmark after 2 seconds
+      setTimeout(() => setCopiedField(null), 2000);
+    }).catch(() => {
+      toast.error(`Failed to copy ${fieldName}`);
+    });
+  };
+
   // Fetch inquiry details using TanStack Query with server action
   const {
     data: inquiry,
@@ -159,9 +168,13 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => copyToClipboard(inquiry.name, "Customer name")}
+                        onClick={() => handleCopyToClipboard(inquiry.name, "Customer name", "name")}
                       >
-                        <Copy className="h-3 w-3" />
+                        {copiedField === "name" ? (
+                          <Check className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
                         <span className="sr-only">Copy customer name</span>
                       </Button>
                     )}
@@ -184,9 +197,13 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => copyToClipboard(inquiry.phone, "Phone number")}
+                        onClick={() => handleCopyToClipboard(inquiry.phone, "Phone number", "phone")}
                       >
-                        <Copy className="h-3 w-3" />
+                        {copiedField === "phone" ? (
+                          <Check className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
                         <span className="sr-only">Copy phone number</span>
                       </Button>
                     )}
@@ -209,9 +226,13 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => copyToClipboard(inquiry.email!, "Email address")}
+                        onClick={() => handleCopyToClipboard(inquiry.email!, "Email address", "email")}
                       >
-                        <Copy className="h-3 w-3" />
+                        {copiedField === "email" ? (
+                          <Check className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
                         <span className="sr-only">Copy email address</span>
                       </Button>
                     )}
@@ -274,9 +295,13 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                     variant="ghost"
                     size="sm"
                     className="h-8 px-2"
-                    onClick={() => copyToClipboard(formatFullAddress(inquiry), "Full address")}
+                    onClick={() => handleCopyToClipboard(formatFullAddress(inquiry), "Full address", "address")}
                   >
-                    <Copy className="h-3 w-3 mr-1" />
+                    {copiedField === "address" ? (
+                      <Check className="h-3 w-3 mr-1 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3 mr-1" />
+                    )}
                     Copy Address
                   </Button>
                 )}
