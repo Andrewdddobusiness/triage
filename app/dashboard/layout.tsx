@@ -16,12 +16,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Use Zustand auth store
   const {
     user,
-    isAuthenticated,
     isLoading: authLoading,
     needsOnboarding,
     needsPostSubscriptionOnboarding,
     onboardingLoading,
-    checkOnboarding,
   } = useAuthStore();
 
   // Add a mounting state to prevent premature redirects

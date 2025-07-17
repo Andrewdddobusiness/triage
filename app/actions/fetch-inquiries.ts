@@ -32,9 +32,12 @@ export interface Inquiry {
 export async function fetchUserInquiries() {
   try {
     const supabase = await createClient();
-    
+
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return { success: false, error: "User not authenticated", data: [] };
     }
@@ -53,38 +56,23 @@ export async function fetchUserInquiries() {
     // Get the phone number assigned to this service provider
     const { data: phoneNumber, error: phoneError } = await supabase
       .from("twilio_phone_numbers")
-      .select("phone_number, vapi_phone_number_id")
+      .select("phone_number")
       .eq("assigned_to", serviceProvider.id)
       .single();
+
+    console.log("phoneNumber:", phoneNumber);
 
     if (phoneError || !phoneNumber) {
       // No phone number assigned yet, return empty array
       return { success: true, data: [] };
     }
 
-    // If we have a VAPI phone number ID, use it for precise matching
-    if (phoneNumber.vapi_phone_number_id) {
-      console.log('Using VAPI phone number ID for lookup:', phoneNumber.vapi_phone_number_id);
-      
-      const { data: inquiries, error: inquiriesError } = await supabase
-        .from("customer_inquiries")
-        .select("*")
-        .eq("business_phone_id", phoneNumber.vapi_phone_number_id)
-        .order("created_at", { ascending: false });
-
-      if (inquiriesError) {
-        return { success: false, error: inquiriesError.message, data: [] };
-      }
-
-      return { success: true, data: inquiries as Inquiry[] };
-    }
-
-    // Fallback: Search by phone number formats if no VAPI ID
+    // Use phone number for lookup (stable across VAPI reconnections)
     const userPhoneNumber = phoneNumber.phone_number;
     const possibleFormats = generatePhoneFormats(userPhoneNumber);
-    
-    console.log('User phone number:', userPhoneNumber);
-    console.log('Searching for business_phone formats (fallback):', possibleFormats);
+
+    console.log("User phone number:", userPhoneNumber);
+    console.log("Searching for business_phone formats:", possibleFormats);
 
     // Query for inquiries that were received by this user's business phone number
     const { data: inquiries, error: inquiriesError } = await supabase
@@ -100,10 +88,10 @@ export async function fetchUserInquiries() {
     return { success: true, data: inquiries as Inquiry[] };
   } catch (error) {
     console.error("Error fetching user inquiries:", error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : "Failed to fetch inquiries",
-      data: [] 
+      data: [],
     };
   }
 }
@@ -111,9 +99,12 @@ export async function fetchUserInquiries() {
 export async function fetchInquiryDetails(inquiryId: string) {
   try {
     const supabase = await createClient();
-    
+
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return { success: false, error: "User not authenticated", data: null };
     }
@@ -132,7 +123,7 @@ export async function fetchInquiryDetails(inquiryId: string) {
     // Get the phone number assigned to this service provider for verification
     const { data: phoneNumber, error: phoneError } = await supabase
       .from("twilio_phone_numbers")
-      .select("phone_number, vapi_phone_number_id")
+      .select("phone_number")
       .eq("assigned_to", serviceProvider.id)
       .single();
 
@@ -157,12 +148,9 @@ export async function fetchInquiryDetails(inquiryId: string) {
 
     // Verify this inquiry belongs to the current user by checking business phone
     let isOwner = false;
-    
-    if (phoneNumber.vapi_phone_number_id && inquiry.business_phone_id) {
-      // Check by VAPI phone number ID (most reliable)
-      isOwner = inquiry.business_phone_id === phoneNumber.vapi_phone_number_id;
-    } else if (inquiry.business_phone) {
-      // Fallback: Check by phone number formats
+
+    if (inquiry.business_phone) {
+      // Check by phone number formats (stable across VAPI reconnections)
       const possibleFormats = generatePhoneFormats(phoneNumber.phone_number);
       isOwner = possibleFormats.includes(inquiry.business_phone);
     }
@@ -174,10 +162,10 @@ export async function fetchInquiryDetails(inquiryId: string) {
     return { success: true, data: inquiry as Inquiry };
   } catch (error) {
     console.error("Error fetching inquiry details:", error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : "Failed to fetch inquiry details",
-      data: null 
+      data: null,
     };
   }
 }

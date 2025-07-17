@@ -51,7 +51,7 @@ export default function DashboardPage() {
     refetchOnWindowFocus: true,
     staleTime: 25000, // Consider data stale after 25 seconds
   });
-  console.log(inquiriesResult);
+
   // Handle errors
   useEffect(() => {
     if (inquiriesError) {
@@ -85,6 +85,7 @@ export default function DashboardPage() {
 
   // Show all inquiries in the table (not just new ones)
   const allInquiries = inquiries;
+  console.log("allInquiries:", allInquiries);
 
   return (
     <ResizablePanelGroup direction="horizontal" className="h-screen">
