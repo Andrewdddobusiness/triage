@@ -16,7 +16,7 @@ import {
 
 import { MoreVerticalIcon, GripVerticalIcon } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 /**
  * A small handle for row dragging.

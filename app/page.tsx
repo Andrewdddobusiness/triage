@@ -14,7 +14,7 @@ import {
   ClockIcon,
 } from "lucide-react";
 import dashboard from "@/public/images/dashboard.png";
-import HomeLayout from "@/components/layouts/home-layout";
+import HomeLayout from "@/components/layout/home-layout";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";

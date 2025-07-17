@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ReactNode, useEffect, useState } from "react";
-import { AssistantSetupModal } from "@/components/assistant-setup-modal";
+import { AssistantSetupModal } from "@/components/modals/assistant-setup-modal";
 import { getSetupFlags, updateSetupFlags } from "@/app/actions/update-setup-flags";
 import { SidebarInset } from "@/components/ui/sidebar";
 

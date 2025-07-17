@@ -4,8 +4,8 @@ import Image from "next/image";
 import sawing from "../../../public/images/sawing.jpg";
 import logoColor from "../../../public/images/logo/color/logo-color-1.png";
 import { signInAction } from "@/app/actions/auth";
-import { FormMessage } from "@/components/form-message";
-import { Message } from "@/components/form-message";
+import { FormMessage } from "@/components/forms/form-message";
+import { Message } from "@/components/forms/form-message";
 
 export default function Login(props: { searchParams: Promise<Message> }) {
   const [searchParams, setSearchParams] = useState<Message | null>(null);

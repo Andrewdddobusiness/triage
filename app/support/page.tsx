@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import HomeLayout from "@/components/layouts/home-layout";
+import HomeLayout from "@/components/layout/home-layout";
 import { Button } from "@/components/ui/button";
 
 export default function SupportPage() {

@@ -1,5 +1,5 @@
 import React from "react";
-import HomeLayout from "@/components/layouts/home-layout";
+import HomeLayout from "@/components/layout/home-layout";
 import Link from "next/link";
 
 export default function PrivacyPolicyPage() {

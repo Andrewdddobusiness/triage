@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, Bot, Phone, Settings, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { AssistantSetupModal } from "@/components/assistant-setup-modal";
+import { AssistantSetupModal } from "@/components/modals/assistant-setup-modal";
 import { SetupAlert } from "@/components/setup-alert";
 import { findAndAssignPhoneNumber, deletePhoneNumber } from "@/app/actions/phone-number-assignment";
 import { reconnectPhoneNumberToVapi } from "@/app/actions/reconnect-phone-number";

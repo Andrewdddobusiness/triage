@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import HomeLayout from "@/components/layouts/home-layout";
+import HomeLayout from "@/components/layout/home-layout";
 
 export default function PricingPage() {
   return (

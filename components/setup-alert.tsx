@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Bot, Phone, AlertTriangle } from "lucide-react";
 import { checkSetupStatus, SetupStatus } from "@/app/actions/check-setup-status";
-import { AssistantSetupModal, Step } from "./assistant-setup-modal";
+import { AssistantSetupModal, Step } from "./modals/assistant-setup-modal";
 
 interface SetupAlertProps {
   className?: string;

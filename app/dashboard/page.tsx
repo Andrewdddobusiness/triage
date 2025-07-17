@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { DataTable } from "@/components/data-table/table";
+import { DataTable } from "@/components/data/data-table/table";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { SetupAlert } from "@/components/setup-alert";

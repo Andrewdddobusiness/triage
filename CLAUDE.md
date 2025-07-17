@@ -74,14 +74,55 @@ Follow this structure for organizing components:
 ```
 components/
 ├── ui/                     # Base UI components (shadcn/ui)
+│   ├── button.tsx          # Reusable button component
+│   ├── card.tsx            # Card layouts
+│   ├── input.tsx           # Form inputs
+│   └── ...                 # Other base UI components
+├── layout/                 # Layout-specific components
+│   ├── home-layout.tsx     # Public page layout
+│   ├── site-header.tsx     # Site header
+│   └── footer.tsx          # Site footer
+├── navigation/             # Navigation components
+│   ├── navigation.tsx      # Main navigation
+│   ├── nav-main.tsx        # Primary navigation
+│   └── nav-user.tsx        # User navigation
+├── forms/                  # Form-related components
+│   ├── form-message.tsx    # Form error/success messages
+│   └── submit-button.tsx   # Form submit buttons
+├── modals/                 # Modal components
+│   └── assistant-setup-modal.tsx # Assistant setup modal
+├── data/                   # Data display components
+│   └── data-table/         # Data table implementation
+│       ├── data-table.tsx  # Main data table
+│       ├── table.tsx       # Table component
+│       └── columns.tsx     # Column definitions
 ├── onboarding/            # Onboarding-specific components
 │   ├── stepper.tsx        # Main stepper component
 │   └── steps/             # Individual step components
-├── auth/                  # Authentication components
 ├── dashboard/             # Dashboard-specific components
-├── layouts/               # Layout components
+├── billing/               # Billing and payment components
+├── inquiry/               # Inquiry-specific components
+├── providers/             # Context providers
 └── [feature]/             # Feature-specific component groups
 ```
+
+#### Component Organization Best Practices
+
+1. **Categorize by Function**: Group components by their primary function rather than by page or feature
+2. **Use Descriptive Directories**: Directory names should clearly indicate the type of components inside
+3. **Keep UI Components Separate**: Base UI components should remain in `/ui/` for reusability
+4. **Feature-Specific Grouping**: Components used only in specific features should be grouped together
+5. **Consistent Naming**: Use kebab-case for component files and directories
+6. **Avoid Deep Nesting**: Limit directory nesting to 3 levels maximum for maintainability
+7. **Single Responsibility**: Each component should have a single, clear purpose
+8. **Import Paths**: Always use absolute imports with `@/components/` prefix for consistency
+
+#### Component Cleanup Guidelines
+
+- **Remove Unused Components**: Regularly audit and remove components that are no longer imported or used
+- **Avoid Redundancy**: Don't create duplicate components with similar functionality
+- **Template Cleanup**: Remove starter template components that aren't integrated into the application
+- **Dependencies**: Before removing components, check for internal dependencies within the components directory
 
 ### Page Organization Convention
 

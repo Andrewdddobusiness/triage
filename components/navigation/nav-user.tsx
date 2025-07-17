@@ -37,17 +37,17 @@ export function NavUser({
     try {
       // Immediately update the local state for instant UI feedback
       logout();
-      
+
       // Sign out from Supabase client
       const supabase = createClient();
       await supabase.auth.signOut();
-      
+
       // Navigate to home page using Next.js router
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       // If anything fails, navigate to home page
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -85,7 +85,7 @@ export function NavUser({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/billing" className="flex items-center">
+                <Link href="/dashboard/billing" className="flex items-center cursor-pointer">
                   <CreditCardIcon />
                   Billing
                 </Link>

@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import HomeLayout from "@/components/layouts/home-layout";
+import HomeLayout from "@/components/layout/home-layout";
 import teamImage from "@/public/images/site-people.jpg";
 
 export default function AboutPage() {

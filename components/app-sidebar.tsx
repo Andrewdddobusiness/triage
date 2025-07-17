@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ArrowUpCircleIcon, Bot, CameraIcon, FileCodeIcon, FileTextIcon, LayoutDashboardIcon } from "lucide-react";
-import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
+import { NavMain } from "@/components/navigation/nav-main";
+import { NavUser } from "@/components/navigation/nav-user";
 import { useAuthStore } from "@/stores/auth-store";
 import {
   Sidebar,
