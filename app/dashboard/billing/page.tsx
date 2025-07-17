@@ -116,32 +116,6 @@ export default async function BillingPage() {
             <h2 className="text-2xl font-semibold tracking-tight">Previous invoices</h2>
           </div>
 
-          {/* Invoice Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="text-sm">
-                View all
-              </Button>
-              <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
-                Active
-              </Button>
-              <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
-                Archived
-              </Button>
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search" className="pl-9 w-64" />
-              </div>
-              <Button variant="outline" size="sm" className="text-sm">
-                <FilterIcon className="h-4 w-4 mr-2" />
-                Most recent
-              </Button>
-            </div>
-          </div>
-
           {/* Invoice List */}
           <div className="space-y-3">
             {invoiceData.error ? (
