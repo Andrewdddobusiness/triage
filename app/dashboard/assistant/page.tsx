@@ -16,6 +16,7 @@ import { SetupAlert } from "@/components/setup-alert";
 import { findAndAssignPhoneNumber, deletePhoneNumber } from "@/app/actions/phone-number-assignment";
 import { reconnectPhoneNumberToVapi } from "@/app/actions/reconnect-phone-number";
 import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AssistantPreset {
   id: string;
@@ -210,16 +211,6 @@ export default function AssistantSettingsPage() {
     setShowSetupModal(true);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p>Loading assistant settings...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -244,32 +235,46 @@ export default function AssistantSettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className=" text-sm">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
-                  {assistantEnabled ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-zinc-400" />
-                  )}
-                </div>
-                {!canActivateAssistant && (
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className=" text-sm">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
+                    {assistantEnabled ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-zinc-400" />
+                    )}
+                  </div>
+                )}
+                {!loading && !canActivateAssistant && (
                   <p className="text-sm text-orange-600">
                     {!serviceProviderAssistant
                       ? "Requires assistant configuration to activate"
                       : "Requires business phone number to activate"}
                   </p>
                 )}
+                {loading && (
+                  <Skeleton className="h-4 w-64" />
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Label htmlFor="assistant-toggle" className="sr-only">
                   Toggle AI Assistant
                 </Label>
-                <Switch
-                  id="assistant-toggle"
-                  checked={assistantEnabled}
-                  onCheckedChange={handleToggleAssistant}
-                  disabled={updating || !canActivateAssistant}
-                />
+                {loading ? (
+                  <Skeleton className="h-6 w-10 rounded-full" />
+                ) : (
+                  <Switch
+                    id="assistant-toggle"
+                    checked={assistantEnabled}
+                    onCheckedChange={handleToggleAssistant}
+                    disabled={updating || !canActivateAssistant}
+                  />
+                )}
               </div>
             </div>
           </CardContent>
@@ -284,7 +289,12 @@ export default function AssistantSettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {serviceProviderAssistant?.assistant_preset ? (
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            ) : serviceProviderAssistant?.assistant_preset ? (
               <div className="space-y-2">
                 <h3 className="font-medium">{serviceProviderAssistant.assistant_preset.name}</h3>
                 <p className="text-sm text-zinc-600">{serviceProviderAssistant.assistant_preset.description}</p>
@@ -309,7 +319,15 @@ export default function AssistantSettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {assignedPhoneNumber ? (
+            {loading ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-3 w-64" />
+              </div>
+            ) : assignedPhoneNumber ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{assignedPhoneNumber.phone_number}</span>
