@@ -12,6 +12,105 @@ import { fetchUserInquiries } from "@/app/actions/fetch-inquiries";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+// Skeleton table component for loading state
+function SkeletonTable() {
+  return (
+    <div className="space-y-4">
+      {/* Filter controls skeleton */}
+      <div className="flex flex-wrap items-center gap-4 px-2 sm:px-4 lg:px-6">
+        <Skeleton className="h-10 w-[200px] lg:w-[250px]" />
+        <Skeleton className="h-10 w-[140px]" />
+        <Skeleton className="h-10 w-[140px]" />
+        <Skeleton className="h-10 w-[120px]" />
+        <Skeleton className="h-10 w-[140px]" />
+      </div>
+
+      {/* Table skeleton */}
+      <div className="overflow-hidden rounded-lg border mx-2 sm:mx-4 lg:mx-6">
+        <Table>
+          <TableHeader className="bg-muted">
+            <TableRow>
+              <TableHead className="w-12"></TableHead>
+              <TableHead className="w-12"></TableHead>
+              <TableHead>Customer Name</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Inquiry Date</TableHead>
+              <TableHead>Service Type</TableHead>
+              <TableHead>Job Time</TableHead>
+              <TableHead>Budget</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-12"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* Generate 5 skeleton rows */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className="h-4 w-4" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-4" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-36" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-28" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-12 rounded-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-4" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination skeleton */}
+      <div className="flex items-center justify-between px-2 sm:px-4 lg:px-6">
+        <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="flex w-full items-center gap-2 lg:w-fit">
+          <div className="hidden items-center gap-2 lg:flex">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+          <Skeleton className="h-4 w-24" />
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-8 w-8" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
@@ -63,16 +162,6 @@ export default function DashboardPage() {
   // Extract inquiries from result
   const inquiries = inquiriesResult?.data || [];
 
-  if (inquiriesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p>Loading inquiries...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Compute analytics metrics
   const analytics = {
@@ -104,28 +193,36 @@ export default function DashboardPage() {
                   <h3 className="tracking-tight text-sm font-medium">New Inquiries</h3>
                   <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-2xl font-bold">{analytics.new}</div>
+                <div className="text-2xl font-bold">
+                  {inquiriesLoading ? <Skeleton className="h-8 w-8" /> : analytics.new}
+                </div>
               </div>
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <h3 className="tracking-tight text-sm font-medium">Contacted</h3>
                   <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-2xl font-bold">{analytics.contacted}</div>
+                <div className="text-2xl font-bold">
+                  {inquiriesLoading ? <Skeleton className="h-8 w-8" /> : analytics.contacted}
+                </div>
               </div>
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <h3 className="tracking-tight text-sm font-medium">Scheduled</h3>
                   <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-2xl font-bold">{analytics.scheduled}</div>
+                <div className="text-2xl font-bold">
+                  {inquiriesLoading ? <Skeleton className="h-8 w-8" /> : analytics.scheduled}
+                </div>
               </div>
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <h3 className="tracking-tight text-sm font-medium">Completed</h3>
                   <TrendingDownIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-2xl font-bold">{analytics.completed}</div>
+                <div className="text-2xl font-bold">
+                  {inquiriesLoading ? <Skeleton className="h-8 w-8" /> : analytics.completed}
+                </div>
               </div>
             </div>
 
@@ -133,7 +230,11 @@ export default function DashboardPage() {
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
                 <h3 className="text-lg font-semibold mb-4">All Inquiries</h3>
-                <DataTable data={allInquiries} onRowClick={handleInquiryClick} />
+                {inquiriesLoading ? (
+                  <SkeletonTable />
+                ) : (
+                  <DataTable data={allInquiries} onRowClick={handleInquiryClick} />
+                )}
               </div>
             </div>
           </div>

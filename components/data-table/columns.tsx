@@ -2,11 +2,10 @@
 "use client";
 
 import * as React from "react";
-import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import { inquirySchema } from "@/schema/inquiry";
+import { Inquiry } from "@/app/actions/fetch-inquiries";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/inquiry/status-badge";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,10 +16,7 @@ import {
 
 import { MoreVerticalIcon, GripVerticalIcon } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "../ui/button";
-
-export type Inquiry = z.infer<typeof inquirySchema>;
 
 /**
  * A small handle for row dragging.
@@ -106,32 +102,130 @@ export const columns: ColumnDef<Inquiry>[] = [
     cell: ({ row }) => {
       const value = row.original.job_type;
       if (!value) return "N/A";
-      
+
       // Categorize the job type for display consistency
       const categorizeJobType = (jobType: string): string => {
         const jobTypeLower = jobType.toLowerCase();
-        
+
         const serviceKeywordMappings = {
-          "New Builds": ["new build", "new builds", "new construction", "new home", "new house", "construction", "building", "build", "new property", "ground up"],
-          "Renovations": ["renovation", "renovations", "renovate", "remodel", "remodeling", "kitchen renovation", "bathroom renovation", "home renovation", "renovation work", "makeover", "upgrade", "modernize", "refurbish", "kitchen remodel", "bathroom remodel", "room renovation"],
-          "Repairs": ["repair", "repairs", "fix", "fixing", "broken", "maintenance", "leak repair", "roof repair", "plumbing repair", "electrical repair", "pipe repair", "drain repair", "tap repair", "faucet repair", "heating repair", "cooling repair", "hvac repair", "boiler repair"],
-          "Installations": ["installation", "installations", "install", "installing", "fit", "fitting", "new installation", "system installation", "appliance installation", "fixture installation", "equipment installation", "setup", "mounting"],
-          "Emergency Call-Outs": ["emergency", "urgent", "call-out", "callout", "emergency call", "urgent repair", "emergency service", "after hours", "weekend service", "immediate", "asap", "burst pipe", "no hot water", "no heating"],
-          "Inspections": ["inspection", "inspections", "check", "assessment", "survey", "safety inspection", "compliance check", "pre-purchase inspection", "building inspection", "system check", "maintenance check"],
-          "Custom Work": ["custom", "bespoke", "specialized", "unique", "custom work", "special project", "one-off", "tailored", "specific requirements"]
+          "New Builds": [
+            "new build",
+            "new builds",
+            "new construction",
+            "new home",
+            "new house",
+            "construction",
+            "building",
+            "build",
+            "new property",
+            "ground up",
+          ],
+          Renovations: [
+            "renovation",
+            "renovations",
+            "renovate",
+            "remodel",
+            "remodeling",
+            "kitchen renovation",
+            "bathroom renovation",
+            "home renovation",
+            "renovation work",
+            "makeover",
+            "upgrade",
+            "modernize",
+            "refurbish",
+            "kitchen remodel",
+            "bathroom remodel",
+            "room renovation",
+          ],
+          Repairs: [
+            "repair",
+            "repairs",
+            "fix",
+            "fixing",
+            "broken",
+            "maintenance",
+            "leak repair",
+            "roof repair",
+            "plumbing repair",
+            "electrical repair",
+            "pipe repair",
+            "drain repair",
+            "tap repair",
+            "faucet repair",
+            "heating repair",
+            "cooling repair",
+            "hvac repair",
+            "boiler repair",
+          ],
+          Installations: [
+            "installation",
+            "installations",
+            "install",
+            "installing",
+            "fit",
+            "fitting",
+            "new installation",
+            "system installation",
+            "appliance installation",
+            "fixture installation",
+            "equipment installation",
+            "setup",
+            "mounting",
+          ],
+          "Emergency Call-Outs": [
+            "emergency",
+            "urgent",
+            "call-out",
+            "callout",
+            "emergency call",
+            "urgent repair",
+            "emergency service",
+            "after hours",
+            "weekend service",
+            "immediate",
+            "asap",
+            "burst pipe",
+            "no hot water",
+            "no heating",
+          ],
+          Inspections: [
+            "inspection",
+            "inspections",
+            "check",
+            "assessment",
+            "survey",
+            "safety inspection",
+            "compliance check",
+            "pre-purchase inspection",
+            "building inspection",
+            "system check",
+            "maintenance check",
+          ],
+          "Custom Work": [
+            "custom",
+            "bespoke",
+            "specialized",
+            "unique",
+            "custom work",
+            "special project",
+            "one-off",
+            "tailored",
+            "specific requirements",
+          ],
         };
-        
+
         for (const [category, keywords] of Object.entries(serviceKeywordMappings)) {
-          if (keywords.some(keyword => jobTypeLower.includes(keyword.toLowerCase()))) {
+          if (keywords.some((keyword) => jobTypeLower.includes(keyword.toLowerCase()))) {
             return category;
           }
         }
-        
+
         return jobType;
       };
-      
+
       const categorized = categorizeJobType(value);
-      
+
       // Show original with categorized in parentheses if different
       return categorized === value ? categorized : `${categorized}`;
     },
@@ -142,7 +236,7 @@ export const columns: ColumnDef<Inquiry>[] = [
     cell: ({ row }) => {
       const dateValue = row.original.preferred_service_date;
       const textValue = row.original.preferred_service_date_text;
-      
+
       if (textValue) {
         return textValue;
       } else if (dateValue) {
@@ -165,35 +259,9 @@ export const columns: ColumnDef<Inquiry>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status;
+      const inquiryDate = row.original.inquiry_date;
 
-      // Optionally map statuses to different badge variants
-      let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
-      let label = status;
-
-      switch (status) {
-        case "new":
-          variant = "default";
-          label = "new";
-          break;
-        case "contacted":
-          variant = "secondary";
-          label = "contacted";
-          break;
-        case "scheduled":
-          variant = "outline";
-          label = "scheduled";
-          break;
-        case "completed":
-          variant = "outline";
-          label = "completed";
-          break;
-        case "cancelled":
-          variant = "destructive";
-          label = "cancelled";
-          break;
-      }
-
-      return <Badge variant={variant}>{label}</Badge>;
+      return <StatusBadge status={status} inquiryDate={inquiryDate} />;
     },
   },
   {
@@ -207,7 +275,6 @@ export const columns: ColumnDef<Inquiry>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
           <DropdownMenuItem>View</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Delete</DropdownMenuItem>

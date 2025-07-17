@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, Phone, Mail, MapPin, Calendar, DollarSign, User, FileText, Clock, Building } from "lucide-react";
+import { X, Phone, Mail, MapPin, Calendar, DollarSign, User, FileText, Clock, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadge } from "@/components/inquiry/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Inquiry, fetchInquiryDetails } from "@/app/actions/fetch-inquiries";
+import { toast } from "sonner";
 
 interface InquiryDetailsPanelProps {
   inquiryId: string | null;
@@ -59,22 +59,33 @@ function formatCurrency(amount: number | null | undefined) {
   }).format(amount);
 }
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case "new":
-      return "bg-blue-100 text-blue-800";
-    case "contacted":
-      return "bg-yellow-100 text-yellow-800";
-    case "scheduled":
-      return "bg-purple-100 text-purple-800";
-    case "completed":
-      return "bg-green-100 text-green-800";
-    case "cancelled":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
+function capitalizeText(text: string | null | undefined) {
+  if (!text) return "Not specified";
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+function copyToClipboard(text: string, fieldName: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    toast.success(`${fieldName} copied to clipboard`);
+  }).catch(() => {
+    toast.error(`Failed to copy ${fieldName}`);
+  });
+}
+
+function formatFullAddress(inquiry: Inquiry | undefined) {
+  if (!inquiry) return "Not provided";
+  
+  const addressParts = [
+    inquiry.street_address,
+    inquiry.city,
+    inquiry.state,
+    inquiry.postal_code,
+    inquiry.country
+  ].filter(Boolean);
+  
+  return addressParts.length > 0 ? addressParts.join(", ") : "Not provided";
+}
+
 
 export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelProps) {
   // Fetch inquiry details using TanStack Query with server action
@@ -106,9 +117,10 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
           <FieldSkeleton />
         ) : (
           <div className="flex justify-start">
-            <Badge className={getStatusColor(inquiry?.status || "")}>
-              {inquiry?.status ? inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1) : "Unknown"}
-            </Badge>
+            <StatusBadge 
+              status={inquiry?.status || ""} 
+              inquiryDate={inquiry?.inquiry_date} 
+            />
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
@@ -140,7 +152,20 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                     <User className="h-4 w-4" />
                     Customer Name
                   </label>
-                  <p className="text-sm">{inquiry?.name || "Not provided"}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm flex-1">{inquiry?.name || "Not provided"}</p>
+                    {inquiry?.name && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => copyToClipboard(inquiry.name, "Customer name")}
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span className="sr-only">Copy customer name</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -152,7 +177,20 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                     <Phone className="h-4 w-4" />
                     Phone Number
                   </label>
-                  <p className="text-sm">{inquiry?.phone || "Not provided"}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm flex-1">{inquiry?.phone || "Not provided"}</p>
+                    {inquiry?.phone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => copyToClipboard(inquiry.phone, "Phone number")}
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span className="sr-only">Copy phone number</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -164,7 +202,20 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                     <Mail className="h-4 w-4" />
                     Email Address
                   </label>
-                  <p className="text-sm">{inquiry?.email || "Not provided"}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm flex-1">{inquiry?.email || "Not provided"}</p>
+                    {inquiry?.email && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => copyToClipboard(inquiry.email!, "Email address")}
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span className="sr-only">Copy email address</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -180,7 +231,7 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
               ) : (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-600">Job Type</label>
-                  <p className="text-sm">{inquiry?.job_type || "Not specified"}</p>
+                  <p className="text-sm">{capitalizeText(inquiry?.job_type)}</p>
                 </div>
               )}
 
@@ -192,7 +243,7 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
                     <FileText className="h-4 w-4" />
                     Job Description
                   </label>
-                  <p className="text-sm whitespace-pre-wrap">{inquiry?.job_description || "No description provided"}</p>
+                  <p className="text-sm whitespace-pre-wrap">{capitalizeText(inquiry?.job_description) !== "Not specified" ? capitalizeText(inquiry?.job_description) : "No description provided"}</p>
                 </div>
               )}
 
@@ -213,10 +264,23 @@ export function InquiryDetailsPanel({ inquiryId, onClose }: InquiryDetailsPanelP
 
             {/* Location Information */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Location
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Location
+                </h3>
+                {formatFullAddress(inquiry) !== "Not provided" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={() => copyToClipboard(formatFullAddress(inquiry), "Full address")}
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copy Address
+                  </Button>
+                )}
+              </div>
 
               {isLoading ? (
                 <FieldSkeleton />
