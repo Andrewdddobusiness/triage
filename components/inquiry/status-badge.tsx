@@ -21,21 +21,21 @@ export function StatusBadge({ status, inquiryDate }: StatusBadgeProps) {
 
   const formattedLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-  // Use consistent color scheme for both variants with hover effects
+  // Use semantic theme colors for proper light/dark mode support
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200 hover:text-blue-900";
+        return "bg-accent text-accent-foreground hover:bg-accent/80";
       case "contacted":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900";
+        return "bg-muted text-muted-foreground hover:bg-muted/80";
       case "scheduled":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-200 hover:text-purple-900";
+        return "bg-primary text-primary-foreground hover:bg-primary/80";
       case "completed":
-        return "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900";
+        return "bg-secondary text-secondary-foreground hover:bg-secondary/80";
       case "cancelled":
-        return "bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900";
+        return "bg-destructive text-destructive-foreground hover:bg-destructive/80";
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900";
+        return "bg-muted text-muted-foreground hover:bg-muted/80";
     }
   };
 

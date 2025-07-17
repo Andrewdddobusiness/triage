@@ -77,34 +77,34 @@ export default async function AccountPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700">Full Name</label>
-                <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-md">
-                  <UserIcon className="h-4 w-4 text-zinc-500" />
-                  <span className="text-zinc-900">{userInfo.name}</span>
+                <label className="text-sm font-medium text-foreground">Full Name</label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <UserIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{userInfo.name}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700">Email Address</label>
-                <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-md">
-                  <MailIcon className="h-4 w-4 text-zinc-500" />
-                  <span className="text-zinc-900">{userInfo.email}</span>
+                <label className="text-sm font-medium text-foreground">Email Address</label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <MailIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{userInfo.email}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700">Business Name</label>
-                <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-md">
-                  <BuildingIcon className="h-4 w-4 text-zinc-500" />
-                  <span className="text-zinc-900">{userInfo.businessName}</span>
+                <label className="text-sm font-medium text-foreground">Business Name</label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <BuildingIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{userInfo.businessName}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-700">Password</label>
-                <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-md">
-                  <span className="text-zinc-900">••••••••</span>
-                  <a href="/dashboard/reset-password" className="ml-auto text-sm text-orange-600 hover:text-orange-500">
+                <label className="text-sm font-medium text-foreground">Password</label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <span className="text-sm">••••••••</span>
+                  <a href="/dashboard/reset-password" className="ml-auto text-sm text-primary hover:text-primary/90">
                     Change
                   </a>
                 </div>
@@ -123,17 +123,17 @@ export default async function AccountPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700">Member Since</label>
-              <p className="text-zinc-900">{userInfo.createdAt}</p>
+              <label className="text-sm font-medium text-foreground">Member Since</label>
+              <p className="text-sm">{userInfo.createdAt}</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700">Last Sign In</label>
-              <p className="text-zinc-900">{userInfo.lastSignIn}</p>
+              <label className="text-sm font-medium text-foreground">Last Sign In</label>
+              <p className="text-sm">{userInfo.lastSignIn}</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700">Email Status</label>
+              <label className="text-sm font-medium text-foreground">Email Status</label>
               <div>
                 <Badge variant={userInfo.emailVerified ? "default" : "destructive"}>
                   {userInfo.emailVerified ? "Verified" : "Unverified"}

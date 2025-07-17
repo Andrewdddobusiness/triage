@@ -233,7 +233,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   if (isRedirecting) {
     return (
       <div className="flex h-screen w-full">
-        <div className="flex w-full mx-auto bg-white overflow-hidden">
+        <div className="flex w-full mx-auto bg-background overflow-hidden">
           <div className="w-full flex items-center justify-center p-8">
             <div className="w-full max-w-md text-center">
               {/* Logo */}
@@ -243,10 +243,10 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Redirecting message */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-zinc-700 mb-4">Welcome to Spaak!</h1>
-                <p className="text-gray-600 mb-6">Account created successfully. Redirecting you to your dashboard...</p>
+                <h1 className="text-3xl font-bold text-foreground mb-4">Welcome to Spaak!</h1>
+                <p className="text-muted-foreground mb-6">Account created successfully. Redirecting you to your dashboard...</p>
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               </div>
             </div>
@@ -260,7 +260,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   if (isSuccess) {
     return (
       <div className="flex h-screen w-full">
-        <div className="flex w-full mx-auto bg-white overflow-hidden">
+        <div className="flex w-full mx-auto bg-background overflow-hidden">
           {/* Left side - Success message */}
           <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12">
             <div className="w-full max-w-md text-center">
@@ -271,17 +271,17 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Success message */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-zinc-700 mb-4">Check Your Email</h1>
-                <p className="text-gray-600 mb-2">We've sent a verification link to:</p>
-                <p className="text-orange-600 font-medium mb-4">{email}</p>
-                <p className="text-gray-600 text-sm">
+                <h1 className="text-3xl font-bold text-foreground mb-4">Check Your Email</h1>
+                <p className="text-muted-foreground mb-2">We've sent a verification link to:</p>
+                <p className="text-primary font-medium mb-4">{email}</p>
+                <p className="text-muted-foreground text-sm">
                   Please check your email and click the verification link to activate your account.
                 </p>
               </div>
 
               {/* Go to Sign In button */}
               <Link href="/sign-in">
-                <Button className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors h-12">
+                <Button className="w-full bg-primary text-white py-3 px-4 rounded-xl font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors h-12">
                   Go to Sign In
                 </Button>
               </Link>
@@ -289,7 +289,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               {/* Additional help text */}
               <p className="text-sm text-gray-500 mt-4">
                 Didn't receive the email? Check your spam folder or{" "}
-                <button onClick={() => setIsSuccess(false)} className="text-orange-600 hover:text-orange-500 underline">
+                <button onClick={() => setIsSuccess(false)} className="text-primary hover:text-primary/90 underline">
                   try again
                 </button>
               </p>
@@ -300,7 +300,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
           <div className="hidden md:flex w-1/2 p-8">
             <div className="relative w-full h-full rounded-2xl overflow-hidden">
               <Image src={wetConcrete} alt="Wet Concrete" fill className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
             </div>
           </div>
         </div>
@@ -319,8 +319,8 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               <div className="mb-6">
                 <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
               </div>
-              <h1 className="text-3xl font-bold text-zinc-700 mb-2">Get Started Now</h1>
-              <p className="text-gray-600">Enter your credentials to access your account</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Get Started Now</h1>
+              <p className="text-muted-foreground">Enter your credentials to access your account</p>
             </div>
 
             {/* Google Sign In Button */}
@@ -362,7 +362,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
             <form className="space-y-4" onSubmit={handleSubmit}>
               {/* Name Field */}
               <div>
-                <Label htmlFor="name" className="block text-sm font-medium text-zinc-700 mb-2">
+                <Label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
                   Name
                 </Label>
                 <Input
@@ -382,7 +382,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Email Field */}
               <div>
-                <Label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-2">
+                <Label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                   Email address
                 </Label>
                 <Input
@@ -402,7 +402,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Password Field */}
               <div>
-                <Label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-2">
+                <Label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                   Password
                 </Label>
                 <div className="relative">
@@ -467,7 +467,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Confirm Password Field */}
               <div>
-                <Label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-700 mb-2">
+                <Label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -506,11 +506,11 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
                   onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
                   disabled={isLoading}
                   required
-                  className={`mt-1 border-2 border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`mt-1 border-2 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 />
-                <label htmlFor="terms" className={`text-sm text-zinc-700 ${isLoading ? "opacity-50" : ""}`}>
+                <label htmlFor="terms" className={`text-sm text-foreground ${isLoading ? "opacity-50" : ""}`}>
                   I agree to the{" "}
-                  <Link href="/terms" className="text-orange-600 hover:text-orange-500">
+                  <Link href="/terms" className="text-primary hover:text-primary/90">
                     Terms & Privacy
                   </Link>
                 </label>
@@ -520,7 +520,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
               <Button
                 type="submit"
                 disabled={!isFormValid() || isLoading}
-                className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed h-12 flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white py-3 px-4 rounded-xl font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed h-12 flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isLoading ? "Signing up..." : "Sign up"}
@@ -528,9 +528,9 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
 
               {/* Sign in navigation */}
               <div className="text-center pt-4">
-                <p className="text-sm text-zinc-700">
+                <p className="text-sm text-foreground">
                   Have an account?{" "}
-                  <Link href="/sign-in" className="text-orange-600 hover:text-orange-500 font-medium">
+                  <Link href="/sign-in" className="text-primary hover:text-primary/90 font-medium">
                     Sign in
                   </Link>
                 </p>
@@ -546,7 +546,7 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
           <div className="relative w-full h-full rounded-2xl overflow-hidden">
             <Image src={wetConcrete} alt="Wet Concrete" fill className="object-cover" />
             {/* Optional overlay with your brand colors */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
           </div>
         </div>
       </div>

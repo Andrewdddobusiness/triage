@@ -53,7 +53,7 @@ export default function Login(props: { searchParams: Promise<Message> }) {
         <div className="relative w-full h-full rounded-2xl overflow-hidden">
           <Image src={sawing} alt="Wet Concrete" fill className="object-cover" />
           {/* Optional overlay with your brand colors */}
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
         </div>
       </div>
 
@@ -64,27 +64,27 @@ export default function Login(props: { searchParams: Promise<Message> }) {
             <div className="mb-4">
               <Image src={logoColor} alt="Spaak Logo" width={48} height={48} />
             </div>
-            <h2 className="text-3xl font-bold text-zinc-700">Spaak</h2>
-            <p className="text-zinc-600">Sign in to your account</p>
+            <h2 className="text-3xl font-bold text-foreground">Spaak</h2>
+            <p className="text-muted-foreground">Sign in to your account</p>
           </div>
 
           {/* Error Message Display */}
           {searchParams && "error" in searchParams && (
-            <div className="mb-4 text-zinc-700">
+            <div className="mb-4 text-foreground">
               <FormMessage message={{ error: getErrorMessage(searchParams.error) }} />
             </div>
           )}
 
           {/* Success Message Display */}
           {searchParams && "success" in searchParams && (
-            <div className="mb-4 text-zinc-700">
+            <div className="mb-4 text-foreground">
               <FormMessage message={searchParams} />
             </div>
           )}
 
           {/* General Message Display */}
           {searchParams && "message" in searchParams && (
-            <div className="mb-4 text-zinc-700f">
+            <div className="mb-4 text-foreground">
               <FormMessage message={searchParams} />
             </div>
           )}
@@ -92,7 +92,7 @@ export default function Login(props: { searchParams: Promise<Message> }) {
           {/* Attach the signInAction to the form */}
           <form action={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
                 Email
               </label>
               <input
@@ -101,16 +101,16 @@ export default function Login(props: { searchParams: Promise<Message> }) {
                 type="email"
                 required
                 disabled={isLoading}
-                className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground">
                   Password
                 </label>
-                <a href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-500">
+                <a href="/forgot-password" className="text-sm text-primary hover:text-primary/90">
                   Forgot password?
                 </a>
               </div>
@@ -120,14 +120,14 @@ export default function Login(props: { searchParams: Promise<Message> }) {
                 type="password"
                 required
                 disabled={isLoading}
-                className="w-full px-3 py-2 bg-white border border-zinc-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
@@ -135,9 +135,9 @@ export default function Login(props: { searchParams: Promise<Message> }) {
 
           {/* Sign up navigation */}
           <div className="text-center pt-2">
-            <p className="text-sm text-zinc-600">
+            <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <a href="/sign-up" className="text-orange-600 hover:text-orange-500 font-medium">
+              <a href="/sign-up" className="text-primary hover:text-primary/90 font-medium">
                 Sign up
               </a>
             </p>

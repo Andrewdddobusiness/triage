@@ -34,26 +34,26 @@ export default function HomePage() {
   return (
     <HomeLayout>
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center">
             <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0">
-              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight">
-                Never miss a lead with your <span className="text-orange-500">AI receptionist</span>
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground leading-tight">
+                Never miss a lead with your <span className="text-primary">AI receptionist</span>
               </h1>
-              <p className="mt-4 text-lg text-gray-700 max-w-2xl">
+              <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
                 Spaak is an AI-powered voice assistant designed for tradies and service professionals who can't always
                 answer their phone. When a call is missed, Spaak steps in.
               </p>
               <div className="mt-8">
                 <Button 
                   onClick={handleGetStarted}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-md"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-6 rounded-md"
                 >
                   {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
                 </Button>
                 {/* <Link href="/demo" passHref>
-                  <Button variant="outline" className="ml-4 border-orange-500 text-orange-500 hover:bg-orange-50">
+                  <Button variant="outline" className="ml-4 border-primary text-primary hover:bg-primary/10">
                     Schedule a call
                   </Button>
                 </Link> */}
@@ -66,7 +66,7 @@ export default function HomePage() {
                   alt="Spaak Dashboard"
                   width={600}
                   height={400}
-                  className="object-cover rounded-lg shadow-xl p-2 bg-white"
+                  className="object-cover rounded-lg shadow-xl p-2 bg-background"
                 />
               </div>
             </div>
@@ -75,43 +75,43 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-12 text-center text-zinc-700">How Spaak Works?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-foreground">How Spaak Works?</h2>
           <div className="grid gap-8 md:grid-cols-3">
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
+            <div className="bg-muted p-6 rounded-lg text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
                 <PhoneIcon className="h-8 w-8 text-[#ffb351]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Missed Call</h3>
-              <p className="text-zinc-700">When you can't answer, Spaak automatically steps in to handle the call.</p>
+              <h3 className="text-xl font-semibold mb-3 text-foreground">Missed Call</h3>
+              <p className="text-muted-foreground">When you can't answer, Spaak automatically steps in to handle the call.</p>
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
+            <div className="bg-muted p-6 rounded-lg text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffdacb] flex items-center justify-center">
                 <ClipboardCheckIcon className="h-8 w-8 text-[#fe885a]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Capture Details</h3>
-              <p className="text-zinc-700">
+              <h3 className="text-xl font-semibold mb-3 text-foreground">Capture Details</h3>
+              <p className="text-muted-foreground">
                 Spaak collects caller details, project needs, and preferred contact times.
               </p>
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
+            <div className="bg-muted p-6 rounded-lg text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffddde] flex items-center justify-center">
                 <ClockIcon className="h-8 w-8 text-[#ffa2a3]" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-zinc-700">Ready Summary</h3>
-              <p className="text-zinc-700">A complete summary is sent to your dashboard, ready for follow-up.</p>
+              <h3 className="text-xl font-semibold mb-3 text-foreground">Ready Summary</h3>
+              <p className="text-muted-foreground">A complete summary is sent to your dashboard, ready for follow-up.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Use Cases Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-8 text-orange-500 text-center">Perfect for...</h2>
+          <h2 className="text-3xl font-bold mb-8 text-primary text-center">Perfect for...</h2>
           <div className="grid gap-6 md:grid-cols-4">
-            <div className="bg-white rounded-lg shadow-sm h-48 overflow-hidden relative">
+            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
               <Image src="/images/home/electrician.jpg" alt="Electrician" fill className="object-cover" />
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -119,7 +119,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm h-48 overflow-hidden relative">
+            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
               <Image src="/images/home/plumber.jpg" alt="Plumber" fill className="object-cover" />
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -127,7 +127,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm h-48 overflow-hidden relative">
+            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
               <Image src="/images/home/carpenter.jpg" alt="Carpenter" fill className="object-cover" />
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -135,7 +135,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm h-48 overflow-hidden relative">
+            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
               <Image src="/images/home/construction.jpg" alt="Construction" fill className="object-cover" />
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -174,7 +174,7 @@ export default function HomePage() {
       </section> */}
 
       {/* Call to Action Section */}
-      <section className="py-16 bg-orange-500 text-white">
+      <section className="py-16 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold mb-4">Ready to never miss a job opportunity?</h2>
           <p className="text-xl mb-8 opacity-90">
@@ -183,7 +183,7 @@ export default function HomePage() {
           </p>
           <Button 
             onClick={handleGetStarted}
-            className="bg-white text-orange-500 hover:bg-gray-100 font-medium py-3 px-8 rounded-md"
+            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium py-3 px-8 rounded-md"
           >
             {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
           </Button>

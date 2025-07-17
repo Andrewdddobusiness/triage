@@ -603,3 +603,251 @@ className="grid grid-cols-2 flex flex-row"  // Conflicting layout methods
 6. **Test responsive behavior** at all breakpoints
 7. **Avoid fixed pixel heights** for main content areas
 8. **Use overflow controls** strategically to prevent layout breaks
+
+## Typography & Design System Style Guide
+
+### Text Hierarchy
+
+#### **Page Titles & Main Headers**
+```typescript
+// Large page titles (dashboard, account pages)
+className="text-2xl font-bold"          // Dashboard metrics
+className="text-xl font-semibold"       // Panel headers
+
+// Usage examples:
+<h1 className="text-2xl font-bold">Analytics Overview</h1>
+<h2 className="text-xl font-semibold">Inquiry Details</h2>
+```
+
+#### **Section Headers**
+```typescript
+// Section/subsection headers within pages
+className="text-lg font-semibold"       // Main sections
+className="font-semibold text-lg"       // Panel sections (inquiry details)
+
+// Usage examples:
+<h3 className="text-lg font-semibold mb-4">All Inquiries</h3>
+<h3 className="font-semibold text-lg">Caller Details</h3>
+<h3 className="font-semibold text-lg">Job Details</h3>
+```
+
+#### **Small Headers & Labels**
+```typescript
+// Card headers and form labels
+className="tracking-tight text-sm font-medium"     // Analytics cards
+className="text-sm font-medium text-gray-600"      // Field labels
+className="text-sm font-medium text-muted-foreground"  // Semantic labels
+
+// Usage examples:
+<h3 className="tracking-tight text-sm font-medium">New Inquiries</h3>
+<label className="text-sm font-medium text-gray-600">Customer Name</label>
+<label className="text-sm font-medium text-muted-foreground">Phone Number</label>
+```
+
+#### **Body Text & Content**
+```typescript
+// Primary body text
+className="text-base"                   // Standard content (inquiry panel large text)
+className="text-sm"                     // Secondary content (inquiry panel details)
+className="text-xs"                     // Small content (table cells)
+
+// Usage examples:
+<p className="text-base font-medium">{inquiry?.name}</p>
+<p className="text-sm">{inquiry?.phone || "Not provided"}</p>
+<span className="text-xs">Table data</span>
+```
+
+### Color System & Theme
+
+#### **Theme Colors (CSS Variables)**
+```css
+/* Light Mode */
+--background: 0 0% 100%;           /* #ffffff - Main background */
+--foreground: 0 0% 3.9%;           /* #0a0a0a - Primary text */
+--muted: 0 0% 96.1%;              /* #f6f6f6 - Muted backgrounds */
+--muted-foreground: 0 0% 45.1%;   /* #737373 - Muted text */
+--card: 0 0% 100%;                /* #ffffff - Card backgrounds */
+--card-foreground: 0 0% 3.9%;     /* #0a0a0a - Card text */
+--border: 0 0% 89.8%;             /* #e5e5e5 - Borders */
+
+/* Dark Mode */
+--background: 0 0% 3.9%;          /* #0a0a0a - Main background */
+--foreground: 0 0% 98%;           /* #fafafa - Primary text */
+--muted: 0 0% 14.9%;             /* #262626 - Muted backgrounds */
+--muted-foreground: 0 0% 63.9%;  /* #a3a3a3 - Muted text */
+```
+
+#### **Semantic Color Usage**
+```typescript
+// Primary text colors
+className="text-foreground"             // Main text
+className="text-muted-foreground"       // Secondary/muted text
+className="text-gray-600"              // Field labels (fixed gray)
+
+// Background colors
+className="bg-background"               // Main backgrounds
+className="bg-card"                     // Card backgrounds  
+className="bg-muted"                    // Table headers, muted areas
+
+// Status & feedback colors
+className="text-red-600"               // Error states
+className="text-green-600"             // Success states (copy feedback)
+className="text-blue-800"             // Status badges (blue variant)
+className="text-yellow-800"           // Status badges (yellow variant)
+```
+
+#### **Status Badge Color System**
+```typescript
+// Status-specific color combinations (background + text)
+"bg-blue-100 text-blue-800"           // New status
+"bg-yellow-100 text-yellow-800"       // Contacted status  
+"bg-purple-100 text-purple-800"       // Scheduled status
+"bg-green-100 text-green-800"         // Completed status
+"bg-red-100 text-red-800"             // Cancelled status
+"bg-gray-100 text-gray-800"           // Default/unknown status
+
+// With hover states
+"hover:bg-blue-200 hover:text-blue-900"    // Darker on hover
+```
+
+### Spacing & Layout Standards
+
+#### **Container Spacing**
+```typescript
+// Page-level containers
+className="space-y-6 px-4"             // Dashboard main content
+className="p-6 space-y-6"              // Panel content areas
+className="space-y-4"                  // Section groupings
+
+// Component spacing
+className="gap-4"                       // Grid/flex gaps
+className="gap-2"                       // Small component gaps
+className="mb-4"                        // Section bottom margins
+```
+
+#### **Card & Panel Patterns**
+```typescript
+// Standard card styling
+className="rounded-lg border bg-card text-card-foreground shadow-sm p-6"
+
+// Analytics cards
+className="rounded-lg border bg-card text-card-foreground shadow-sm p-6"
+
+// Panel containers
+className="h-full bg-white border-l flex flex-col"    // Side panels
+className="space-y-2"                                 // Field containers
+```
+
+### Interactive Elements
+
+#### **Button Styling Standards**
+```typescript
+// Copy buttons (small icons)
+className="h-6 w-6 p-0"               // Small icon buttons
+className="h-8 px-2"                  // Small buttons with text
+
+// Icon sizing in buttons
+className="h-3 w-3"                   // Small icons (copy, check)
+className="h-4 w-4"                   // Standard icons (close, navigation)
+```
+
+#### **Icon Standards**
+```typescript
+// Icon sizing by context
+className="h-3 w-3"                   // Button icons, small indicators
+className="h-4 w-4"                   // Field labels, navigation icons
+className="h-5 w-5"                   // Larger interactive elements
+
+// Icon colors
+className="text-muted-foreground"     // Standard icon color
+className="text-green-600"            // Success state icons
+className="text-gray-600"             // Label icons
+```
+
+### Form & Input Patterns
+
+#### **Field Label Patterns**
+```typescript
+// Standard field label with icon
+<label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+  <IconComponent className="h-4 w-4" />
+  Field Name
+</label>
+
+// Content display pattern
+<div className="space-y-2">
+  <label>...</label>
+  <div className="flex items-center gap-2">
+    <p className="text-sm flex-1">{content}</p>
+    {/* Optional action button */}
+  </div>
+</div>
+```
+
+#### **Filter & Control Sizing**
+```typescript
+// Filter controls (consistent widths)
+className="w-[200px] lg:w-[250px]"    // Search inputs
+className="w-[140px]"                  // Standard selects
+className="w-[120px]"                  // Compact selects
+```
+
+### Responsive Design Patterns
+
+#### **Breakpoint Strategy**
+```typescript
+// Mobile-first responsive classes
+className="w-full md:w-1/2 lg:w-1/3"           // Progressive sizing
+className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"    // Responsive grids
+className="flex flex-col gap-4 md:flex-row"     // Stack on mobile, row on desktop
+
+// Responsive text sizing
+className="text-sm md:text-base"               // Larger text on desktop
+className="px-2 sm:px-4 lg:px-6"             // Progressive padding
+```
+
+### Component-Specific Patterns
+
+#### **Table Styling**
+```typescript
+// Table header (sticky)
+className="sticky top-0 z-[1] bg-muted"
+
+// Table containers
+className="overflow-hidden rounded-lg border"
+
+// Cell content
+className="text-xs"                    // Table cell text size
+```
+
+#### **Loading States**
+```typescript
+// Skeleton sizing
+className="h-8 w-8"                   // Analytics number skeletons
+className="h-4 w-32"                  // Text skeletons
+className="h-5 w-12 rounded-full"     // Badge skeletons
+```
+
+### Usage Guidelines
+
+#### **When to Use Each Text Size**
+- **`text-2xl font-bold`**: Main page headers, primary metrics
+- **`text-xl font-semibold`**: Panel titles, major section headers  
+- **`text-lg font-semibold`**: Subsection headers, content group titles
+- **`text-sm font-medium`**: Labels, card headers, navigation
+- **`text-base`**: Primary content in panels, important data
+- **`text-sm`**: Secondary content, descriptions, form fields
+- **`text-xs`**: Table data, compact listings, metadata
+
+#### **Color Usage Rules**
+1. **Use semantic colors** (`text-muted-foreground`) over fixed colors when possible
+2. **Fixed grays** (`text-gray-600`) only for form labels that need consistent color
+3. **Status colors** follow the established badge color system
+4. **Success/error states** use `text-green-600` and `text-red-600`
+5. **Interactive elements** use theme colors for better dark mode support
+
+#### **Spacing Consistency**
+- **Section spacing**: Use `space-y-6` for major sections, `space-y-4` for subsections
+- **Field spacing**: Use `space-y-2` for form field containers
+- **Component gaps**: Use `gap-4` for grids, `gap-2` for inline elements
+- **Container padding**: Use `p-6` for panels, `px-4` for page content
