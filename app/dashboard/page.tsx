@@ -10,7 +10,7 @@ import { SetupAlert } from "@/components/setup-alert";
 import { InquiryDetailsPanel } from "@/components/inquiry-details-panel";
 import { fetchUserInquiries } from "@/app/actions/fetch-inquiries";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { SidebarInset } from "@/components/ui/sidebar";
+import { SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -115,18 +115,33 @@ function SkeletonTable() {
 export default function DashboardPage() {
   const searchParams = useSearchParams();
 
+  // Get sidebar controls
+  const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
+
   // State for the inquiry details panel
   const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
 
-  // Function to handle inquiry row click
+  // Function to handle inquiry row click - closes sidebar when opening inquiry panel
   const handleInquiryClick = (inquiryId: string) => {
+    // Close sidebar when opening inquiry panel
+    if (sidebarOpen) {
+      setSidebarOpen(false);
+    }
     setSelectedInquiryId(inquiryId);
   };
 
-  // Function to close panel
+  // Function to close inquiry panel
   const handleClosePanel = () => {
     setSelectedInquiryId(null);
   };
+
+  // Listen for sidebar open events to close inquiry panel
+  useEffect(() => {
+    if (sidebarOpen && selectedInquiryId) {
+      // Close inquiry panel when sidebar opens
+      setSelectedInquiryId(null);
+    }
+  }, [sidebarOpen, selectedInquiryId]);
 
   // Handle payment success notification
   useEffect(() => {
@@ -174,7 +189,13 @@ export default function DashboardPage() {
 
   // Show all inquiries in the table (not just new ones)
   const allInquiries = inquiries;
-  console.log("allInquiries:", allInquiries);
+  
+  // Debug logging for panel state
+  console.log("Panel States:", {
+    sidebarOpen,
+    inquiryPanelOpen: Boolean(selectedInquiryId),
+    selectedInquiryId
+  });
 
   return (
     <ResizablePanelGroup direction="horizontal" className="h-screen">
