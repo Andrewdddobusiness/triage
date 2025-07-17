@@ -1,17 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
 import { fetchInvoices, type Invoice } from "@/app/actions/stripe/invoice";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,122 +98,121 @@ export default async function BillingPage() {
   };
 
   return (
-    <SidebarProvider>
-      <SidebarInset>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <PaymentNotification />
+    <>
+      <BreadcrumbHeader currentPage="Billing" />
+      <div className="space-y-6 px-4">
+        <PaymentNotification />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Plans & billing</h1>
+          <p className="text-muted-foreground">Manage your plan and billing history here.</p>
+        </div>
+
+        {/* Subscription Status Card */}
+        <SubscriptionSection subscriptionData={subscriptionData} userId={user.id} />
+
+        {/* Previous Invoices Section */}
+        <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Plans & billing</h1>
-            <p className="text-muted-foreground">Manage your plan and billing history here.</p>
+            <h2 className="text-2xl font-semibold tracking-tight">Previous invoices</h2>
           </div>
 
-          {/* Subscription Status Card */}
-          <SubscriptionSection subscriptionData={subscriptionData} userId={user.id} />
-
-          {/* Previous Invoices Section */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold tracking-tight">Previous invoices</h2>
+          {/* Invoice Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="text-sm">
+                View all
+              </Button>
+              <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
+                Active
+              </Button>
+              <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
+                Archived
+              </Button>
             </div>
 
-            {/* Invoice Controls */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="text-sm">
-                  View all
-                </Button>
-                <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
-                  Active
-                </Button>
-                <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">
-                  Archived
-                </Button>
+            <div className="flex gap-2 items-center">
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search" className="pl-9 w-64" />
               </div>
+              <Button variant="outline" size="sm" className="text-sm">
+                <FilterIcon className="h-4 w-4 mr-2" />
+                Most recent
+              </Button>
+            </div>
+          </div>
 
-              <div className="flex gap-2 items-center">
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search" className="pl-9 w-64" />
+          {/* Invoice List */}
+          <div className="space-y-3">
+            {invoiceData.error ? (
+              <Card className="p-8">
+                <div className="text-center">
+                  <AlertCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Failed to load invoices</h3>
+                  <p className="text-muted-foreground">{invoiceData.error}</p>
                 </div>
-                <Button variant="outline" size="sm" className="text-sm">
-                  <FilterIcon className="h-4 w-4 mr-2" />
-                  Most recent
-                </Button>
-              </div>
-            </div>
-
-            {/* Invoice List */}
-            <div className="space-y-3">
-              {invoiceData.error ? (
-                <Card className="p-8">
-                  <div className="text-center">
-                    <AlertCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Failed to load invoices</h3>
-                    <p className="text-muted-foreground">{invoiceData.error}</p>
-                  </div>
-                </Card>
-              ) : invoiceData.invoices.length === 0 ? (
-                <Card className="p-8">
-                  <div className="text-center">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No invoices found</h3>
-                    <p className="text-muted-foreground">
-                      Your invoices will appear here once you have an active subscription
-                    </p>
-                  </div>
-                </Card>
-              ) : (
-                invoiceData.invoices.map((invoice) => (
-                  <Card key={invoice.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded flex items-center justify-center">
-                          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                            {invoice.number ? invoice.number.slice(-3) : invoice.id.slice(-3)}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div className="font-medium">{invoice.number || `Invoice ${invoice.id.slice(-8)}`}</div>
-                            {getInvoiceStatusBadge(invoice.status)}
-                          </div>
-                          <div className="text-sm text-muted-foreground">{formatInvoiceDate(invoice.created)}</div>
-                        </div>
+              </Card>
+            ) : invoiceData.invoices.length === 0 ? (
+              <Card className="p-8">
+                <div className="text-center">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No invoices found</h3>
+                  <p className="text-muted-foreground">
+                    Your invoices will appear here once you have an active subscription
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              invoiceData.invoices.map((invoice) => (
+                <Card key={invoice.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded flex items-center justify-center">
+                        <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                          {invoice.number ? invoice.number.slice(-3) : invoice.id.slice(-3)}
+                        </span>
                       </div>
-
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <div className="text-sm text-muted-foreground">
-                            {invoice.lines.length > 0 && invoice.lines[0].description
-                              ? invoice.lines[0].description
-                              : "Pro plan"}
-                          </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium">{invoice.number || `Invoice ${invoice.id.slice(-8)}`}</div>
+                          {getInvoiceStatusBadge(invoice.status)}
                         </div>
-                        <div className="text-right">
-                          <div className="font-medium">{formatCurrency(invoice.amount_paid, invoice.currency)}</div>
-                        </div>
-                        {invoice.invoice_pdf && (
-                          <Button variant="ghost" size="sm" asChild>
-                            <a href={invoice.invoice_pdf} target="_blank" rel="noopener noreferrer">
-                              <DownloadIcon className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        )}
+                        <div className="text-sm text-muted-foreground">{formatInvoiceDate(invoice.created)}</div>
                       </div>
                     </div>
-                  </Card>
-                ))
-              )}
-            </div>
 
-            {invoiceData.has_more && (
-              <div className="text-center pt-4">
-                <Button variant="outline">Load More Invoices</Button>
-              </div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">
+                          {invoice.lines.length > 0 && invoice.lines[0].description
+                            ? invoice.lines[0].description
+                            : "Pro plan"}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{formatCurrency(invoice.amount_paid, invoice.currency)}</div>
+                      </div>
+                      {invoice.invoice_pdf && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={invoice.invoice_pdf} target="_blank" rel="noopener noreferrer">
+                            <DownloadIcon className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
             )}
           </div>
+
+          {invoiceData.has_more && (
+            <div className="text-center pt-4">
+              <Button variant="outline">Load More Invoices</Button>
+            </div>
+          )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </>
   );
 }

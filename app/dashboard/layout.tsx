@@ -6,6 +6,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { ReactNode, useEffect, useState } from "react";
 import { AssistantSetupModal } from "@/components/assistant-setup-modal";
 import { getSetupFlags, updateSetupFlags } from "@/app/actions/update-setup-flags";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -149,7 +150,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      {children}
+      <SidebarInset>
+        <div className="flex flex-1 flex-col gap-4 pt-0">{children}</div>
+      </SidebarInset>
 
       {/* First-time setup modal */}
       <AssistantSetupModal

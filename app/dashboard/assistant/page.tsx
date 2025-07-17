@@ -15,6 +15,7 @@ import { AssistantSetupModal } from "@/components/assistant-setup-modal";
 import { SetupAlert } from "@/components/setup-alert";
 import { findAndAssignPhoneNumber, deletePhoneNumber } from "@/app/actions/phone-number-assignment";
 import { reconnectPhoneNumberToVapi } from "@/app/actions/reconnect-phone-number";
+import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
 
 interface AssistantPreset {
   id: string;
@@ -140,13 +141,13 @@ export default function AssistantSettingsPage() {
           toast.error(result.error || "Failed to connect phone number to VAPI");
           return;
         }
-        
+
         if (result.alreadyConnected) {
           toast.info("Phone number was already connected to VAPI");
         } else {
           toast.success("Phone number connected to VAPI successfully!");
         }
-        
+
         // Refresh data to get updated VAPI connection
         await fetchAssistantData();
       } else {
@@ -221,125 +222,131 @@ export default function AssistantSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-900 mb-2">Assistant Settings</h1>
-        <p className="text-zinc-600">Configure and manage your AI assistant</p>
-      </div>
+    <>
+      <BreadcrumbHeader currentPage="Assistant Settings" />
+      <div className="space-y-6 px-4">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Assistant Settings</h1>
+          <p className="text-zinc-600">Configure and manage your AI assistant</p>
+        </div>
 
-      {/* Setup Alert */}
-      <SetupAlert />
+        {/* Setup Alert */}
+        <SetupAlert />
 
-      {/* AI Assistant Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Bot className="h-5 w-5" />
-            AI Assistant Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className=" text-sm">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
-                {assistantEnabled ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-zinc-400" />
+        {/* AI Assistant Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bot className="h-5 w-5" />
+              AI Assistant Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className=" text-sm">Your AI Assistant is {assistantEnabled ? "Online" : "Offline"}</span>
+                  {assistantEnabled ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-zinc-400" />
+                  )}
+                </div>
+                {!canActivateAssistant && (
+                  <p className="text-sm text-orange-600">
+                    {!serviceProviderAssistant
+                      ? "Requires assistant configuration to activate"
+                      : "Requires business phone number to activate"}
+                  </p>
                 )}
               </div>
-              {!canActivateAssistant && (
-                <p className="text-sm text-orange-600">
-                  {!serviceProviderAssistant 
-                    ? "Requires assistant configuration to activate" 
-                    : "Requires business phone number to activate"}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="assistant-toggle" className="sr-only">
-                Toggle AI Assistant
-              </Label>
-              <Switch
-                id="assistant-toggle"
-                checked={assistantEnabled}
-                onCheckedChange={handleToggleAssistant}
-                disabled={updating || !canActivateAssistant}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Current Assistant */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Settings className="h-5 w-5" />
-            Current Assistant
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {serviceProviderAssistant?.assistant_preset ? (
-            <div className="space-y-2">
-              <h3 className="font-medium">{serviceProviderAssistant.assistant_preset.name}</h3>
-              <p className="text-sm text-zinc-600">{serviceProviderAssistant.assistant_preset.description}</p>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-zinc-500">No assistant configured</p>
-              <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
-                Setup Assistant
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Business Phone Number */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Phone className="h-5 w-5" />
-            Business Phone Number
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {assignedPhoneNumber ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{assignedPhoneNumber.phone_number}</span>
-                <Badge variant="secondary" className={
-                  assignedPhoneNumber.vapi_phone_number_id 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-yellow-100 text-yellow-800"
-                }>
-                  {assignedPhoneNumber.vapi_phone_number_id ? "Connected" : "Disconnected"}
-                </Badge>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="assistant-toggle" className="sr-only">
+                  Toggle AI Assistant
+                </Label>
+                <Switch
+                  id="assistant-toggle"
+                  checked={assistantEnabled}
+                  onCheckedChange={handleToggleAssistant}
+                  disabled={updating || !canActivateAssistant}
+                />
               </div>
-              <p className="text-xs text-zinc-500">
-                {assignedPhoneNumber.vapi_phone_number_id 
-                  ? "Phone number is connected to VAPI and accepting calls" 
-                  : "Phone number is assigned but disconnected from VAPI"}
-              </p>
             </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-zinc-500 text-sm">No number assigned</p>
-              <p className="text-xs text-zinc-400 mt-1">Use the assistant setup to assign a business phone number</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Assistant Setup Modal */}
-      <AssistantSetupModal
-        open={showSetupModal}
-        onOpenChange={setShowSetupModal}
-        onAssistantSelected={handleAssistantConfigured}
-        onPhoneNumberAssigned={handlePhoneNumberAssigned}
-      />
-    </div>
+        {/* Current Assistant */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Settings className="h-5 w-5" />
+              Current Assistant
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {serviceProviderAssistant?.assistant_preset ? (
+              <div className="space-y-2">
+                <h3 className="font-medium">{serviceProviderAssistant.assistant_preset.name}</h3>
+                <p className="text-sm text-zinc-600">{serviceProviderAssistant.assistant_preset.description}</p>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-zinc-500">No assistant configured</p>
+                <Button variant="outline" className="mt-2" onClick={() => setShowSetupModal(true)}>
+                  Setup Assistant
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Business Phone Number */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Phone className="h-5 w-5" />
+              Business Phone Number
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {assignedPhoneNumber ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{assignedPhoneNumber.phone_number}</span>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      assignedPhoneNumber.vapi_phone_number_id
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }
+                  >
+                    {assignedPhoneNumber.vapi_phone_number_id ? "Connected" : "Disconnected"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-zinc-500">
+                  {assignedPhoneNumber.vapi_phone_number_id
+                    ? "Phone number is connected to VAPI and accepting calls"
+                    : "Phone number is assigned but disconnected from VAPI"}
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-zinc-500 text-sm">No number assigned</p>
+                <p className="text-xs text-zinc-400 mt-1">Use the assistant setup to assign a business phone number</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assistant Setup Modal */}
+        <AssistantSetupModal
+          open={showSetupModal}
+          onOpenChange={setShowSetupModal}
+          onAssistantSelected={handleAssistantConfigured}
+          onPhoneNumberAssigned={handlePhoneNumberAssigned}
+        />
+      </div>
+    </>
   );
 }

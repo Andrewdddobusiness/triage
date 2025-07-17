@@ -10,20 +10,12 @@ import { SetupAlert } from "@/components/setup-alert";
 import { InquiryDetailsPanel } from "@/components/inquiry-details-panel";
 import { fetchUserInquiries } from "@/app/actions/fetch-inquiries";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { SidebarInset } from "@/components/ui/sidebar";
+import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
-  
+
   // State for the inquiry details panel
   const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
 
@@ -99,66 +91,48 @@ export default function DashboardPage() {
       {/* Main Content Panel */}
       <ResizablePanel defaultSize={selectedInquiryId ? 70 : 100} minSize={50}>
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-            <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink href="#">Dashboard</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>Overview</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="space-y-6">
-              {/* Setup Alert */}
-              <SetupAlert />
+          <BreadcrumbHeader currentPage="Overview" />
+          <div className="space-y-6 px-4">
+            {/* Setup Alert */}
+            <SetupAlert />
 
-              {/* Analytics Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                  <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <h3 className="tracking-tight text-sm font-medium">New Inquiries</h3>
-                    <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-2xl font-bold">{analytics.new}</div>
+            {/* Analytics Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <h3 className="tracking-tight text-sm font-medium">New Inquiries</h3>
+                  <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                  <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <h3 className="tracking-tight text-sm font-medium">Contacted</h3>
-                    <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-2xl font-bold">{analytics.contacted}</div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                  <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <h3 className="tracking-tight text-sm font-medium">Scheduled</h3>
-                    <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-2xl font-bold">{analytics.scheduled}</div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                  <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <h3 className="tracking-tight text-sm font-medium">Completed</h3>
-                    <TrendingDownIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-2xl font-bold">{analytics.completed}</div>
-                </div>
+                <div className="text-2xl font-bold">{analytics.new}</div>
               </div>
-
-              {/* Data Table */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">All Inquiries</h3>
-                  <DataTable data={allInquiries} onRowClick={handleInquiryClick} />
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <h3 className="tracking-tight text-sm font-medium">Contacted</h3>
+                  <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
+                <div className="text-2xl font-bold">{analytics.contacted}</div>
+              </div>
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <h3 className="tracking-tight text-sm font-medium">Scheduled</h3>
+                  <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="text-2xl font-bold">{analytics.scheduled}</div>
+              </div>
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <h3 className="tracking-tight text-sm font-medium">Completed</h3>
+                  <TrendingDownIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="text-2xl font-bold">{analytics.completed}</div>
+              </div>
+            </div>
+
+            {/* Data Table */}
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4">All Inquiries</h3>
+                <DataTable data={allInquiries} onRowClick={handleInquiryClick} />
               </div>
             </div>
           </div>
@@ -170,10 +144,7 @@ export default function DashboardPage() {
         <>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
-            <InquiryDetailsPanel
-              inquiryId={selectedInquiryId}
-              onClose={handleClosePanel}
-            />
+            <InquiryDetailsPanel inquiryId={selectedInquiryId} onClose={handleClosePanel} />
           </ResizablePanel>
         </>
       )}
