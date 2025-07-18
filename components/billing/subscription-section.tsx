@@ -226,7 +226,7 @@ export function SubscriptionSection({ subscriptionData, userId }: SubscriptionSe
                 <AlertCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Subscription Expired</h3>
                 <p className="text-zinc-600 mb-6">
-                  Your subscription has expired. Start a new subscription to continue using all features.
+                  Your subscription has expired. Choose a plan to continue using all features.
                 </p>
                 <BillingActions
                   hasActiveSubscription={false}

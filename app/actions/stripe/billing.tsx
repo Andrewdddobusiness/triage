@@ -2,8 +2,25 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { SquareArrowOutUpRight, Loader2 } from "lucide-react";
+import { SquareArrowOutUpRight, Loader2, CheckCircleIcon } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+
+const plans = [
+  {
+    name: "Pro",
+    id: "pro",
+    price: "$59.99",
+    description: "Perfect for individual contractors",
+    features: ["Unlimited calls", "AI analysis", "Basic analytics"],
+  },
+  {
+    name: "Business",
+    id: "business",
+    price: "$149.99",
+    description: "Ideal for growing businesses",
+    features: ["Everything in Pro", "Team tools", "Advanced analytics"],
+  },
+];
 
 interface BillingActionsProps {
   hasActiveSubscription: boolean;
@@ -24,6 +41,7 @@ export function BillingActions({
   subscription,
 }: BillingActionsProps) {
   const [isCheckingStripe, setIsCheckingStripe] = useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState<string | null>(null);
 
   const checkReactivationStatus = async () => {
     try {
@@ -63,7 +81,7 @@ export function BillingActions({
     }
   };
 
-  const handleStartSubscription = async () => {
+  const handleStartSubscription = async (planId?: string) => {
     try {
       const supabase = createClient();
       const {
@@ -81,7 +99,7 @@ export function BillingActions({
           Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: userId }),
+        body: JSON.stringify({ plan: planId || "pro" }),
       });
 
       if (response.ok) {
@@ -142,13 +160,13 @@ export function BillingActions({
     }
   };
 
-  const handleSmartReactivation = async () => {
+  const handleSmartReactivation = async (planId?: string) => {
     // For subscriptions with history, check Stripe first to determine the right action
     const reactivationStatus = await checkReactivationStatus();
 
     if (!reactivationStatus) {
       // If check failed, default to checkout (safer)
-      await handleStartSubscription();
+      await handleStartSubscription(planId);
       return;
     }
 
@@ -156,56 +174,93 @@ export function BillingActions({
       // Try portal first, but fallback to checkout if it fails
       await handleManageSubscription(true);
     } else {
-      await handleStartSubscription();
+      await handleStartSubscription(planId);
     }
   };
 
-  // Simplified logic using real-time Stripe checks
-  const getButtonConfig = () => {
-    // Always show manage for active subscriptions (not cancelled)
-    if (hasActiveSubscription && !subscription?.cancel_at_period_end) {
-      return {
-        text: "Manage Subscription",
-        action: () => handleManageSubscription(false),
-        description: "View billing history and manage your subscription",
-      };
-    }
-
-    // For any subscription history (cancelled, expired, etc.), use smart reactivation
+  const handlePlanSelection = async (planId: string) => {
+    setIsCreatingSession(planId);
     if (hasSubscriptionHistory) {
-      return {
-        text: "Reactivate Subscription",
-        action: handleSmartReactivation,
-      };
+      await handleSmartReactivation(planId);
+    } else {
+      await handleStartSubscription(planId);
     }
-
-    // For completely new users
-    return {
-      text: "Start Subscription",
-      action: handleStartSubscription,
-      description: "Begin your subscription today",
-    };
+    setIsCreatingSession(null);
   };
 
-  const buttonConfig = getButtonConfig();
+  // Show manage button for active subscriptions
+  if (hasActiveSubscription && !subscription?.cancel_at_period_end) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Button onClick={() => handleManageSubscription(false)} className="w-full" disabled={isCheckingStripe}>
+          {isCheckingStripe ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Pending...
+            </>
+          ) : (
+            <>
+              Manage Subscription
+              <SquareArrowOutUpRight className="w-5 h-5 mr-2" />
+            </>
+          )}
+        </Button>
+        <p className="text-xs text-muted-foreground text-center">
+          {isCheckingStripe
+            ? "Verifying subscription status with Stripe..."
+            : "View billing history and manage your subscription"}
+        </p>
+      </div>
+    );
+  }
 
+  // Show plan selection for new users or reactivation
   return (
-    <div className="flex flex-col gap-3">
-      <Button onClick={buttonConfig.action} className="w-full" disabled={isCheckingStripe}>
-        {isCheckingStripe ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Pending...
-          </>
-        ) : (
-          <>
-            {buttonConfig.text}
-            <SquareArrowOutUpRight className="w-5 h-5 mr-2" />
-          </>
-        )}
-      </Button>
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        {plans.map((plan) => (
+          <div key={plan.id} className="border rounded-lg p-4 hover:border-primary/50 transition-colors">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-semibold">{plan.name}</h3>
+                <p className="text-sm text-muted-foreground">{plan.description}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold">{plan.price}</div>
+                <div className="text-sm text-muted-foreground">/month</div>
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              {plan.features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <CheckCircleIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-muted-foreground">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              onClick={() => handlePlanSelection(plan.id)}
+              className="w-full"
+              disabled={isCreatingSession !== null}
+              variant={plan.id === "business" ? "default" : "outline"}
+            >
+              {isCreatingSession === plan.id ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Setting up...
+                </>
+              ) : (
+                `${hasSubscriptionHistory ? "Reactivate" : "Start"} ${plan.name} Plan`
+              )}
+            </Button>
+          </div>
+        ))}
+      </div>
+
       <p className="text-xs text-muted-foreground text-center">
-        {isCheckingStripe ? "Verifying subscription status with Stripe..." : buttonConfig.description}
+        {isCreatingSession ? "Setting up your subscription..." : "30-day free trial • Cancel anytime"}
       </p>
     </div>
   );

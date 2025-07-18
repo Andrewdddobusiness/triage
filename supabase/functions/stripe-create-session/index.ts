@@ -13,6 +13,26 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Parse request body to get the plan
+    const { plan } = await req.json();
+    
+    // Define plan to Price ID mapping
+    const planPriceMap = {
+      pro: Deno.env.get("STRIPE_PRICE_ID_PRO")!,
+      business: Deno.env.get("STRIPE_PRICE_ID_BUSINESS")!,
+    } as const;
+    
+    // Validate plan parameter
+    if (!plan || !Object.keys(planPriceMap).includes(plan)) {
+      throw new Error(`Invalid plan. Must be one of: ${Object.keys(planPriceMap).join(", ")}`);
+    }
+    
+    // Get the corresponding Price ID
+    const priceId = planPriceMap[plan as keyof typeof planPriceMap];
+    if (!priceId) {
+      throw new Error(`Price ID not configured for plan: ${plan}`);
+    }
+
     // Get the authenticated user
     const authHeader = req.headers.get("Authorization")!;
     const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
@@ -57,7 +77,7 @@ serve(async (req: Request) => {
     let sessionParams: any = {
       line_items: [
         {
-          price: Deno.env.get("STRIPE_PRICE_ID")!,
+          price: priceId, // Use the dynamically selected Price ID
           quantity: 1,
         },
       ],
@@ -65,6 +85,7 @@ serve(async (req: Request) => {
       metadata: {
         service_provider_id: serviceProvider.id,
         auth_user_id: user.id,
+        plan: plan, // Include the plan in metadata for tracking
       },
       success_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-payment-redirect?status=success`,
       cancel_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-payment-redirect?status=cancelled`,
@@ -74,6 +95,7 @@ serve(async (req: Request) => {
         metadata: {
           service_provider_id: serviceProvider.id,
           auth_user_id: user.id,
+          plan: plan, // Include the plan in subscription metadata too
         },
       },
     };
@@ -96,7 +118,7 @@ serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("Stripe error:", err);
-    return new Response(JSON.stringify({ error: "Failed to create subscription session" }), {
+    return new Response(JSON.stringify({ error: err.message || "Failed to create subscription session" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
