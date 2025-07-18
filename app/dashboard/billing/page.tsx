@@ -108,7 +108,7 @@ export default async function BillingPage() {
         </div>
 
         {/* Subscription Status Card */}
-        <SubscriptionSection subscriptionData={subscriptionData} userId={user.id} />
+        <SubscriptionSection userId={user.id} />
 
         {/* Previous Invoices Section */}
         <div className="space-y-6">

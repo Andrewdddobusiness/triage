@@ -11,7 +11,7 @@ Spaak is an AI-powered secretary application that handles missed calls for busin
 - **Framework**: Next.js 14 with App Router
 - **Database**: Supabase (PostgreSQL with real-time subscriptions)
 - **Authentication**: Supabase Auth with SSR cookie-based sessions
-- **State Management**: Zustand with persistence
+- **State Management**: Zustand with persistence and optimistic updates
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **UI Components**: Radix UI primitives with custom styling
 - **Voice AI**: Vapi integration via webhooks
@@ -143,9 +143,260 @@ app/
 ### Key Components
 - **Supabase Integration**: Client/server utilities in `utils/supabase/`
 - **UI Components**: shadcn/ui base components in `components/ui/`
-- **State Management**: Zustand stores in `stores/`
+- **State Management**: Zustand stores in `stores/` with domain-specific stores
 - **Middleware**: Session management via `middleware.ts`
 - **Edge Functions**: Vapi integration in `supabase/functions/`
+
+### State Management Architecture
+
+#### Zustand Store Structure
+The application uses Zustand for centralized state management with domain-specific stores:
+
+```
+stores/
+├── auth-store.ts          # Authentication and user state
+├── subscription-store.ts   # Billing and subscription state
+├── inquiry-store.ts       # Customer inquiries and data
+├── ui-store.ts           # Global UI state (modals, notifications, panels)
+├── setup-store.ts        # Assistant and phone setup state
+└── onboarding-store.ts   # Multi-step onboarding flow
+```
+
+#### Store Design Patterns
+
+**1. Domain Separation**
+- Each store manages a specific domain (auth, billing, inquiries, UI)
+- Stores are self-contained with their own actions, state, and computed values
+- No cross-store dependencies - use React hooks to combine stores in components
+
+**2. Persistence Strategy**
+```typescript
+// Selective persistence - only persist relevant state
+persist(
+  (set, get) => ({
+    // store implementation
+  }),
+  {
+    name: 'store-name',
+    partialize: (state) => ({
+      // Only persist specific fields
+      user: state.user,
+      lastFetch: state.lastFetch,
+      // Don't persist loading states, errors, or temporary data
+    }),
+  }
+)
+```
+
+**3. Optimistic Updates**
+```typescript
+// Update UI immediately, then sync with server
+updateInquiryStatus: async (id: string, status: string) => {
+  // Optimistic update
+  set((state) => ({
+    inquiries: state.inquiries.map(inquiry =>
+      inquiry.id === id ? { ...inquiry, status } : inquiry
+    ),
+  }));
+  
+  try {
+    // Sync with server
+    await updateInquiryOnServer(id, status);
+  } catch (error) {
+    // Revert on failure
+    set((state) => ({ 
+      inquiries: state.originalInquiries,
+      error: error.message 
+    }));
+  }
+}
+```
+
+**4. Computed Values**
+```typescript
+// Use getters for derived state
+get filteredInquiries() {
+  const { inquiries, filters } = get();
+  return inquiries.filter(inquiry => 
+    filters.status === 'all' || inquiry.status === filters.status
+  );
+}
+```
+
+#### Store-Specific Best Practices
+
+**Authentication Store** (`auth-store.ts`)
+- Manages user session, onboarding status, and authentication state
+- Handles automatic session refresh and logout
+- Persists user data and onboarding progress
+
+**Subscription Store** (`subscription-store.ts`)
+- Centralized billing and subscription state
+- Implements smart polling for payment processing
+- Caches subscription data to reduce API calls
+- Handles payment flow state management
+
+**Inquiry Store** (`inquiry-store.ts`)
+- Manages customer inquiries with real-time updates
+- Implements auto-refresh with configurable intervals
+- Provides filtered views and search functionality
+- Handles optimistic updates for status changes
+
+**UI Store** (`ui-store.ts`)
+- Global UI state (modals, notifications, panels)
+- Sidebar and panel management
+- Notification system with auto-dismissal
+- Provides helper hooks for common UI patterns
+
+**Setup Store** (`setup-store.ts`)
+- Multi-step setup flow state
+- Assistant and phone number configuration
+- Progress tracking and validation
+- Handles complex setup workflows
+
+#### Component Integration Patterns
+
+**1. Multiple Store Usage**
+```typescript
+// Use multiple stores in a single component
+export function DashboardPage() {
+  const { inquiries, fetchInquiries } = useInquiryStore();
+  const { selectedInquiryId, selectInquiry } = useInquiryPanel();
+  const { showSuccess } = useNotifications();
+  
+  // Component logic
+}
+```
+
+**2. Helper Hooks**
+```typescript
+// Extract common patterns into helper hooks
+export const useInquiryPanel = () => {
+  const { selectedInquiryId, sidebarOpen, setSelectedInquiry } = useUIStore();
+  
+  const selectInquiry = (id: string) => {
+    setSelectedInquiry(id);
+  };
+  
+  return { selectedInquiryId, sidebarOpen, selectInquiry };
+};
+```
+
+**3. Store Actions in Effects**
+```typescript
+// Initialize stores in useEffect
+useEffect(() => {
+  fetchInquiries();
+  startAutoRefresh();
+  
+  return () => {
+    stopAutoRefresh();
+  };
+}, [fetchInquiries, startAutoRefresh, stopAutoRefresh]);
+```
+
+#### Performance Considerations
+
+**1. Selective Subscriptions**
+```typescript
+// Subscribe only to needed state slices
+const isLoading = useInquiryStore(state => state.isLoading);
+const inquiries = useInquiryStore(state => state.inquiries);
+```
+
+**2. Memoization**
+```typescript
+// Use computed values for expensive operations
+get expensiveComputation() {
+  const { data } = get();
+  return useMemo(() => heavyOperation(data), [data]);
+}
+```
+
+**3. Cache Management**
+```typescript
+// Implement intelligent caching
+const checkData = async (force = false) => {
+  const { lastFetch } = get();
+  const cacheAge = Date.now() - lastFetch;
+  
+  if (!force && cacheAge < 30000) {
+    return; // Use cached data
+  }
+  
+  // Fetch fresh data
+};
+```
+
+#### Error Handling
+
+**1. Consistent Error State**
+```typescript
+// Standardized error handling across stores
+interface BaseStore {
+  error: string | null;
+  clearError: () => void;
+}
+
+// In actions
+try {
+  await apiCall();
+} catch (error) {
+  set({ 
+    error: error instanceof Error ? error.message : 'Operation failed',
+    isLoading: false 
+  });
+}
+```
+
+**2. User-Friendly Error Messages**
+```typescript
+// Map API errors to user-friendly messages
+const getErrorMessage = (error: any): string => {
+  if (error.status === 401) return 'Please sign in again';
+  if (error.status === 403) return 'You don\'t have permission for this action';
+  return error.message || 'Something went wrong';
+};
+```
+
+#### Testing Strategies
+
+**1. Store Testing**
+```typescript
+// Test store actions and state changes
+describe('InquiryStore', () => {
+  it('should update inquiry status optimistically', async () => {
+    const store = useInquiryStore.getState();
+    store.updateInquiryStatus('123', 'completed');
+    
+    expect(store.inquiries[0].status).toBe('completed');
+  });
+});
+```
+
+**2. Component Integration Testing**
+```typescript
+// Test component-store integration
+const TestComponent = () => {
+  const { inquiries } = useInquiryStore();
+  return <div>{inquiries.length} inquiries</div>;
+};
+```
+
+#### Migration Guidelines
+
+**From useState to Zustand**
+1. Identify shared state that needs to be lifted up
+2. Create domain-specific store
+3. Move state and actions to store
+4. Replace useState with store hooks
+5. Update component props to remove prop drilling
+
+**From React Query to Zustand**
+1. Move data fetching logic to store actions
+2. Implement caching and refetching in store
+3. Replace useQuery with store hooks
+4. Maintain loading and error states in store
 
 ### User Flow & Authentication Checks
 

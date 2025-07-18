@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/data/data-table/table";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { SetupAlert } from "@/components/setup-alert";
 import { InquiryDetailsPanel } from "@/components/inquiry-details-panel";
-import { fetchUserInquiries } from "@/app/actions/fetch-inquiries";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { BreadcrumbHeader } from "@/components/dashboard/breadcrumb-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useInquiryStore } from "@/stores/inquiry-store";
+import { useInquiryPanel } from "@/stores/ui-store";
 
 // Skeleton table component for loading state
 function SkeletonTable() {
@@ -118,8 +118,31 @@ export default function DashboardPage() {
   // Get sidebar controls
   const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
 
-  // State for the inquiry details panel
-  const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
+  // Use inquiry store and UI store
+  const { 
+    inquiries, 
+    isLoading: inquiriesLoading, 
+    error: inquiriesError,
+    fetchInquiries, 
+    startAutoRefresh, 
+    stopAutoRefresh 
+  } = useInquiryStore();
+  
+  const { 
+    selectedInquiryId, 
+    selectInquiry, 
+    closePanel 
+  } = useInquiryPanel();
+
+  // Initialize data fetch and auto-refresh
+  useEffect(() => {
+    fetchInquiries();
+    startAutoRefresh();
+    
+    return () => {
+      stopAutoRefresh();
+    };
+  }, [fetchInquiries, startAutoRefresh, stopAutoRefresh]);
 
   // Function to handle inquiry row click - closes sidebar when opening inquiry panel
   const handleInquiryClick = (inquiryId: string) => {
@@ -127,21 +150,21 @@ export default function DashboardPage() {
     if (sidebarOpen) {
       setSidebarOpen(false);
     }
-    setSelectedInquiryId(inquiryId);
+    selectInquiry(inquiryId);
   };
 
   // Function to close inquiry panel
   const handleClosePanel = () => {
-    setSelectedInquiryId(null);
+    closePanel();
   };
 
   // Listen for sidebar open events to close inquiry panel
   useEffect(() => {
     if (sidebarOpen && selectedInquiryId) {
       // Close inquiry panel when sidebar opens
-      setSelectedInquiryId(null);
+      closePanel();
     }
-  }, [sidebarOpen, selectedInquiryId]);
+  }, [sidebarOpen, selectedInquiryId, closePanel]);
 
   // Handle payment success notification
   useEffect(() => {
@@ -153,19 +176,6 @@ export default function DashboardPage() {
     }
   }, [searchParams]);
 
-  // Fetch inquiries data using TanStack Query
-  const {
-    data: inquiriesResult,
-    isLoading: inquiriesLoading,
-    error: inquiriesError,
-  } = useQuery({
-    queryKey: ["user-inquiries"],
-    queryFn: fetchUserInquiries,
-    refetchInterval: 30000, // Refetch every 30 seconds to sync with cron job
-    refetchOnWindowFocus: true,
-    staleTime: 25000, // Consider data stale after 25 seconds
-  });
-
   // Handle errors
   useEffect(() => {
     if (inquiriesError) {
@@ -174,8 +184,11 @@ export default function DashboardPage() {
     }
   }, [inquiriesError]);
 
-  // Extract inquiries from result
-  const inquiries = inquiriesResult?.data || [];
+  // Create inquiries result object for compatibility with existing DataTable
+  const inquiriesResult = {
+    data: inquiries,
+    error: inquiriesError,
+  };
 
 
   // Compute analytics metrics
@@ -188,7 +201,6 @@ export default function DashboardPage() {
   };
 
   // Show all inquiries in the table (not just new ones)
-  const allInquiries = inquiries;
   
   // Debug logging for panel state
   console.log("Panel States:", {
@@ -254,7 +266,7 @@ export default function DashboardPage() {
                 {inquiriesLoading ? (
                   <SkeletonTable />
                 ) : (
-                  <DataTable data={allInquiries} onRowClick={handleInquiryClick} />
+                  <DataTable data={inquiries} onRowClick={handleInquiryClick} />
                 )}
               </div>
             </div>
