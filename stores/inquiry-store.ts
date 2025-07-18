@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createClient } from '@/utils/supabase/client';
+import { generatePhoneFormats } from '@/utils/phone-utils';
 
 interface Inquiry {
   id: string;
@@ -178,13 +179,55 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
 
     try {
       const supabase = createClient();
-      const { data: inquiries, error } = await supabase
+      
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get service provider ID
+      const { data: serviceProvider, error: spError } = await supabase
+        .from('service_providers')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      if (spError || !serviceProvider) {
+        throw new Error('Service provider not found');
+      }
+
+      // Get the phone number assigned to this service provider
+      const { data: phoneNumber, error: phoneError } = await supabase
+        .from('twilio_phone_numbers')
+        .select('phone_number')
+        .eq('assigned_to', serviceProvider.id)
+        .single();
+
+      if (phoneError || !phoneNumber) {
+        // No phone number assigned yet, return empty array
+        set({
+          inquiries: [],
+          isLoading: false,
+          error: null,
+          lastFetch: now,
+        });
+        return;
+      }
+
+      // Generate possible phone number formats for matching
+      const userPhoneNumber = phoneNumber.phone_number;
+      const possibleFormats = generatePhoneFormats(userPhoneNumber);
+
+      // Query for inquiries that were received by this user's business phone number
+      const { data: inquiries, error: inquiriesError } = await supabase
         .from('customer_inquiries')
         .select('*')
+        .in('business_phone', possibleFormats)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+      if (inquiriesError) {
+        throw inquiriesError;
       }
 
       set({
