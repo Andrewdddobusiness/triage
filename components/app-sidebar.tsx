@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -46,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const userInfo = {
     // name: user?.user_metadata?.full_name || user?.email || "Anonymous",
-    email: user?.email || "No Email",
+    email: isLoading ? "Loading..." : (user?.email || "No Email"),
     avatar: "/default-avatar.png", // We can add avatar support to the auth store later if needed
   };
 
@@ -76,7 +77,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userInfo} />
+        {isLoading ? (
+          <div className="flex items-center gap-2 p-2">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <div className="flex-1">
+              <Skeleton className="h-4 w-32 mb-1" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        ) : (
+          <NavUser user={userInfo} />
+        )}
       </SidebarFooter>
     </Sidebar>
   );

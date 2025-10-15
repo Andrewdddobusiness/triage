@@ -262,29 +262,18 @@ export const useSetupStore = create<SetupStore>()(
 
         try {
           const supabase = createClient();
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (!user) {
-            throw new Error('No authenticated user');
+          const { data, error } = await supabase.functions.invoke<{
+            success: boolean;
+            phoneNumber?: string;
+            error?: string;
+          }>('assign-phone-number');
+
+          if (error) {
+            throw error;
           }
 
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/assign-phone-number`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.session?.access_token}`,
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                phoneNumber: selectedPhoneNumber,
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error('Failed to assign phone number');
+          if (!data?.success) {
+            throw new Error(data?.error || 'Failed to assign phone number');
           }
 
           // Complete setup

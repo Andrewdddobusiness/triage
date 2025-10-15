@@ -1,10 +1,9 @@
-# CLAUDE.md
+# Spaak Web Application - AI Voice Secretary Platform
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Overview
+Spaak is a SaaS platform targeting tradies (tradespeople) in Australia, providing an AI voice secretary service that handles missed calls, collects customer inquiry information, and provides a dashboard for managing job requests through a subscription-based model.
 
-## Project Overview
-
-Spaak is an AI-powered secretary application that handles missed calls for businesses. Built with Next.js 14 App Router, it integrates with Supabase for backend services, Vapi for voice AI capabilities, and includes a modern UI with shadcn/ui components.
+This file provides comprehensive guidance to Claude Code when working with this repository.
 
 ## Tech Stack
 

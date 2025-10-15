@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { createClient } from '@/utils/supabase/client';
-import { generatePhoneFormats } from '@/utils/phone-utils';
 
 interface Inquiry {
   id: string;
@@ -179,59 +178,23 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
 
     try {
       const supabase = createClient();
-      
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('User not authenticated');
+
+      const { data, error } = await supabase.functions.invoke<{
+        success: boolean;
+        data?: Inquiry[];
+        error?: string;
+      }>('get-inquiries');
+
+      if (error) {
+        throw error;
       }
 
-      // Get service provider ID
-      const { data: serviceProvider, error: spError } = await supabase
-        .from('service_providers')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
-
-      if (spError || !serviceProvider) {
-        throw new Error('Service provider not found');
-      }
-
-      // Get the phone number assigned to this service provider
-      const { data: phoneNumber, error: phoneError } = await supabase
-        .from('twilio_phone_numbers')
-        .select('phone_number')
-        .eq('assigned_to', serviceProvider.id)
-        .single();
-
-      if (phoneError || !phoneNumber) {
-        // No phone number assigned yet, return empty array
-        set({
-          inquiries: [],
-          isLoading: false,
-          error: null,
-          lastFetch: now,
-        });
-        return;
-      }
-
-      // Generate possible phone number formats for matching
-      const userPhoneNumber = phoneNumber.phone_number;
-      const possibleFormats = generatePhoneFormats(userPhoneNumber);
-
-      // Query for inquiries that were received by this user's business phone number
-      const { data: inquiries, error: inquiriesError } = await supabase
-        .from('customer_inquiries')
-        .select('*')
-        .in('business_phone', possibleFormats)
-        .order('created_at', { ascending: false });
-
-      if (inquiriesError) {
-        throw inquiriesError;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to fetch inquiries');
       }
 
       set({
-        inquiries: inquiries || [],
+        inquiries: data.data || [],
         isLoading: false,
         error: null,
         lastFetch: now,
