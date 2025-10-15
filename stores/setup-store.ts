@@ -97,8 +97,9 @@ export const useSetupStore = create<SetupStore>()(
         try {
           const supabase = createClient();
           const { data: { user } } = await supabase.auth.getUser();
+          const { data: { session } } = await supabase.auth.getSession();
           
-          if (!user) {
+          if (!user || !session?.access_token) {
             throw new Error('No authenticated user');
           }
 
@@ -108,7 +109,7 @@ export const useSetupStore = create<SetupStore>()(
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.session?.access_token}`,
+                'Authorization': `Bearer ${session.access_token}`,
               },
               body: JSON.stringify({ userId: user.id }),
             }
@@ -209,8 +210,9 @@ export const useSetupStore = create<SetupStore>()(
         try {
           const supabase = createClient();
           const { data: { user } } = await supabase.auth.getUser();
+          const { data: { session } } = await supabase.auth.getSession();
           
-          if (!user) {
+          if (!user || !session?.access_token) {
             throw new Error('No authenticated user');
           }
 
@@ -220,7 +222,7 @@ export const useSetupStore = create<SetupStore>()(
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.session?.access_token}`,
+                'Authorization': `Bearer ${session.access_token}`,
               },
               body: JSON.stringify({
                 userId: user.id,

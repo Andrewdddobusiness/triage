@@ -2,16 +2,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import {
-  CalendarIcon,
-  ZapIcon,
+  SparklesIcon,
   BarChartIcon,
   Users2Icon,
   BrainCircuitIcon,
-  PhoneIcon,
   ClipboardCheckIcon,
   ClockIcon,
+  CalendarIcon,
+  MessageSquareIcon,
 } from "lucide-react";
 import dashboard from "@/public/images/dashboard.png";
 import HomeLayout from "@/components/layout/home-layout";
@@ -19,174 +18,145 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 
+const stats = [
+  { label: "Calls captured automatically", value: "92%" },
+  { label: "Faster customer callbacks", value: "3.2x" },
+  { label: "Teams onboarded in under", value: "10 min" },
+];
+
+const floatingHeroCards = [
+  {
+    title: "Caller notes",
+    description: "Names, job type, and urgency captured instantly.",
+    icon: ClipboardCheckIcon,
+    className: "hidden lg:flex absolute -top-12 left-8 -rotate-3",
+    bgClass: "bg-[#fff7db]",
+  },
+  {
+    title: "Smart reminders",
+    description: "Spaak schedules the perfect callback window.",
+    icon: CalendarIcon,
+    className: "hidden md:flex absolute -top-14 right-14 rotate-2",
+    bgClass: "bg-[#edf2ff]",
+  },
+  {
+    title: "Live status",
+    description: "Know what is hot, waiting, and already handled.",
+    icon: BarChartIcon,
+    className: "hidden md:flex absolute -bottom-14 left-16 rotate-2",
+    bgClass: "bg-[#e9fff4]",
+  },
+  {
+    title: "Team alerts",
+    description: "Loop your crew in when a high-value lead lands.",
+    icon: Users2Icon,
+    className: "hidden lg:flex absolute -bottom-12 right-12 -rotate-2",
+    bgClass: "bg-[#ffeef4]",
+  },
+];
+
+const heroCallouts = [
+  {
+    title: "Real conversations",
+    description:
+      "Spaak holds human-like dialogues that nurture trust from the first hello.",
+    icon: MessageSquareIcon,
+  },
+  {
+    title: "Instant summaries",
+    description:
+      "Every call generates a concise summary with action items in seconds.",
+    icon: ClockIcon,
+  },
+  {
+    title: "Team notifications",
+    description:
+      "Loop in teammates instantly so the right person jumps on the opportunity.",
+    icon: Users2Icon,
+  },
+];
+
 export default function HomePage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     } else {
-      router.push('/sign-up');
+      router.push("/sign-up");
     }
   };
 
   return (
     <HomeLayout>
-      {/* Hero Section */}
-      <section className="bg-background py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center">
-            <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0">
-              <h1 className="text-4xl sm:text-5xl font-bold text-foreground leading-tight">
-                Never miss a lead with your <span className="text-primary">AI receptionist</span>
-              </h1>
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-                Spaak is an AI-powered voice assistant designed for tradies and service professionals who can't always
-                answer their phone. When a call is missed, Spaak steps in.
-              </p>
-              <div className="mt-8">
-                <Button 
-                  onClick={handleGetStarted}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-6 rounded-md"
-                >
-                  {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
-                </Button>
-                {/* <Link href="/demo" passHref>
-                  <Button variant="outline" className="ml-4 border-primary text-primary hover:bg-primary/10">
-                    Schedule a call
+      <section className="relative overflow-hidden bg-gradient-to-b from-muted/40 via-background to-background py-20 sm:py-28">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 via-transparent to-transparent blur-3xl" />
+          <div className="absolute -bottom-44 right-6 h-96 w-96 rounded-full bg-secondary/30 blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative rounded-[44px] border border-border/40 bg-card/90 shadow-2xl backdrop-blur">
+            <div className="relative overflow-hidden rounded-[44px]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(148,163,184,0.18)_1px,_transparent_1px)] [background-size:26px_26px]" />
+              <div className="relative flex flex-col items-center gap-8 px-6 py-16 text-center sm:px-12 lg:px-20">
+                <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl pt-12">
+                  Think, capture, and convert every call in one place.
+                </h1>
+                <p className="max-w-2xl text-lg text-muted-foreground sm:text-xl">
+                  Spaak is the AI voice assistant for trades and field service
+                  teams. While you stay on the tools, Spaak answers, qualifies,
+                  and hands over the next best action without missing a beat.
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    onClick={handleGetStarted}
+                    className="h-12 rounded-full px-6 text-base font-semibold"
+                  >
+                    {isAuthenticated ? "Go to Dashboard" : "Get Started"}
                   </Button>
-                </Link> */}
+                </div>
+
+                <div className="w-full max-w-3xl">
+                  <div className="relative overflow-hidden rounded-[28px] border border-border/50 bg-background/60 shadow-xl">
+                    <div className="absolute inset-x-10 top-0 h-32 rounded-full bg-primary/10 blur-3xl " />
+                    <div className="relative ">
+                      <Image
+                        src={dashboard}
+                        alt="Spaak dashboard preview"
+                        width={1200}
+                        height={760}
+                        className="w-full rounded-[24px] border border-border/50"
+                        priority
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="w-full lg:w-1/2 justify-center items-center flex">
-              <div className="relative w-full max-w-lg">
-                <Image
-                  src={dashboard}
-                  alt="Spaak Dashboard"
-                  width={600}
-                  height={400}
-                  className="object-cover rounded-lg shadow-xl p-2 bg-background"
-                />
+            {floatingHeroCards.map((card) => (
+              <div
+                key={card.title}
+                className={`${card.className} pointer-events-none z-20`}
+              >
+                <div
+                  className={`relative flex w-60 flex-col gap-3 rounded-3xl border border-border/50 p-5 text-left shadow-[0px_28px_60px_rgba(15,23,42,0.14)] ${card.bgClass} dark:border-border dark:bg-card/80`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <card.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-foreground">
+                      {card.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {card.description}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-16 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-12 text-center text-foreground">How Spaak Works?</h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="bg-muted p-6 rounded-lg text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
-                <PhoneIcon className="h-8 w-8 text-[#ffb351]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-foreground">Missed Call</h3>
-              <p className="text-muted-foreground">When you can't answer, Spaak automatically steps in to handle the call.</p>
-            </div>
-            <div className="bg-muted p-6 rounded-lg text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffdacb] flex items-center justify-center">
-                <ClipboardCheckIcon className="h-8 w-8 text-[#fe885a]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-foreground">Capture Details</h3>
-              <p className="text-muted-foreground">
-                Spaak collects caller details, project needs, and preferred contact times.
-              </p>
-            </div>
-            <div className="bg-muted p-6 rounded-lg text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ffddde] flex items-center justify-center">
-                <ClockIcon className="h-8 w-8 text-[#ffa2a3]" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-foreground">Ready Summary</h3>
-              <p className="text-muted-foreground">A complete summary is sent to your dashboard, ready for follow-up.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases Section */}
-      <section className="py-16 bg-muted">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-8 text-primary text-center">Perfect for...</h2>
-          <div className="grid gap-6 md:grid-cols-4">
-            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
-              <Image src="/images/home/electrician.jpg" alt="Electrician" fill className="object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <h3 className="text-xl font-semibold text-white text-center">Electricians</h3>
-              </div>
-            </div>
-
-            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
-              <Image src="/images/home/plumber.jpg" alt="Plumber" fill className="object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <h3 className="text-xl font-semibold text-white text-center">Plumbers</h3>
-              </div>
-            </div>
-
-            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
-              <Image src="/images/home/carpenter.jpg" alt="Carpenter" fill className="object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <h3 className="text-xl font-semibold text-white text-center">Carpenters</h3>
-              </div>
-            </div>
-
-            <div className="bg-background rounded-lg shadow-sm h-48 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10"></div>
-              <Image src="/images/home/construction.jpg" alt="Construction" fill className="object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <h3 className="text-xl font-semibold text-white text-center">Construction</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      {/* <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-12 text-center">Spaak saves you time!</h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="border border-gray-200 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">Never Miss a Lead</h3>
-              <p className="text-gray-600">
-                Capture every potential job opportunity, even when you're unable to answer the phone.
-              </p>
-            </div>
-            <div className="border border-gray-200 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">Reduce Admin Work</h3>
-              <p className="text-gray-600">
-                Detailed call summaries eliminate the need for manual note-taking and follow-up organization.
-              </p>
-            </div>
-            <div className="border border-gray-200 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">Hands-Free Setup</h3>
-              <p className="text-gray-600">
-                Simple configuration that works right out of the box — no technical expertise required.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
-      {/* Call to Action Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-4">Ready to never miss a job opportunity?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join the growing community of trade professionals who rely on Spaak to capture leads while they focus on
-            their craft.
-          </p>
-          <Button 
-            onClick={handleGetStarted}
-            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium py-3 px-8 rounded-md"
-          >
-            {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
-          </Button>
         </div>
       </section>
     </HomeLayout>
